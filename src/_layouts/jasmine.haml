@@ -11,9 +11,9 @@
   -# Use the .htaccess and remove these lines to avoid edge case issues. More info: h5bp.com/b/378
   %meta{'http-equiv' => "X-UA-Compatible", :content => "IE=edge,chrome=1"}
 
-  %title Default
-  %meta{:name => "description", :content => ""}
-  %meta{:name => "author", :content => ""}
+  <title>Jasmine Test Runner</title>
+  %meta{:name => "description", :content => "Jasmine Test Runner"}
+  %meta{:name => "author", :content => "John Weaver <john@pledge4code.com>"}
 
   -# Mobile viewport optimized: j.mp/bplateviewport -->
   %meta{:name => "viewport", :content => "width=device-width,initial-scale=1"}
@@ -36,21 +36,21 @@
   #container
     %header
     #main{:role => "main"}
-      = yield
+      :javascript
+        jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+        jasmine.getEnv().execute();
     %footer
 
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script
   %script{:defer => true, :src => "/js/app.js"}
-  -# end scripts
+  %script{:src => "/js/lib/jasmine.js", :defer => true}
+  %script{:src => "/js/lib/jasmine-html.js", :defer => true}
 
-  -# Change UA-XXXXX-X to be your site's ID
-  :javascript
-    window._gaq = [['_setAccount','UAXXXXXXXX1'],['_trackPageview'],['_trackPageLoadTime']];
-    Modernizr.load({
-      load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'
-    });
+  = yield
+
+  -# end scripts
 
   -#  Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
     chromium.org/developers/how-tos/chrome-frame-getting-started
