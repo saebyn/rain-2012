@@ -44,7 +44,7 @@
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script
-  %script{:defer => true, :src => "/js/app.js"}
+  %script{:defer => true, :src => "/js/lib/require.js", 'data-main' => "js/app"}
   %script{:src => "/js/lib/jasmine.js", :defer => true}
   %script{:src => "/js/lib/jasmine-html.js", :defer => true}
 
