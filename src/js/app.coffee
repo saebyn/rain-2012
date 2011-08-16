@@ -31,7 +31,7 @@ gamejs.ready ->
   display = gamejs.display.setMode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
   player = new entity.Character(solid_entities)
-  player.rect = new gamejs.Rect(5, SCREEN_HEIGHT - 56, 20, 45)
+  player.rect = new gamejs.Rect(15, SCREEN_HEIGHT - 56, 20, 45)
   player.image = new gamejs.Surface(player.rect)
   player.image.fill('#ff0000')
   characters.add(player)
@@ -41,6 +41,12 @@ gamejs.ready ->
   floor.image = new gamejs.Surface(floor.rect)
   floor.image.fill('#0000ff')
   solid_entities.add(floor)
+
+  wall = new gamejs.sprite.Sprite()
+  wall.rect = new gamejs.Rect(0, 0, 10, SCREEN_HEIGHT - 10)
+  wall.image = new gamejs.Surface(wall.rect)
+  wall.image.fill('#0000ff')
+  solid_entities.add(wall)
 
   gamejs.time.fpsCallback(main, this, 30)
 
