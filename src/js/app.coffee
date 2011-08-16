@@ -1,4 +1,4 @@
-gamejs = require 'gamejs'
+gamejs = require 'lib/gamejs'
 entity = require 'entity'
 
 SCREEN_WIDTH = 400
