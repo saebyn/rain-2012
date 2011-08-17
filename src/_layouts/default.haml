@@ -43,7 +43,7 @@
 
   -# scripts concatenated and minified via build script
   %script{:src => "/js/lib/yabble.js"}
-  %script{:defer => true, :src => "/js/lib/game.js"}
+  %script{:src => "/js/lib/gamejs.js"}
   :javascript
     require.setModuleRoot('js');
     require.run('app');

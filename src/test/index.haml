@@ -22,11 +22,11 @@
 
   %script{:src => "/js/lib/modernizr-2.0.6.min.js"}
   %script{:src => "/js/lib/yabble.js"}
+  %script{:src => "/js/lib/gamejs.js"}
   %script{:src => "/js/lib/jasmine.js"}
   %script{:src => "/js/lib/jasmine-html.js"}
   :javascript
-    jasmine.VERBOSE = true;    
-    require.setModuleRoot('../js');
+    require.setModuleRoot('../js/');
     require.run('tests');
 
 %body
