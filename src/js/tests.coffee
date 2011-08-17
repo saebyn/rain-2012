@@ -44,30 +44,6 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
       expect(@char).not.isNextTo @leftWall
       expect(@char).isNextTo @floor
 
-    it 'should move 100 pixels in one second after a single move', ->
-      oldPosition = @char.rect.left
-      @char.right()
-      for i in [1...20]
-        @char.update 50  # Give it a full second
-      expect(@char.rect.left).toEqual(oldPosition + 100)
-
-    it 'should be able to move right after hitting left wall', ->
-      @char.jump().left().left().left().left()
-      for i in [1...20]
-        @char.update 50  # Give it a full second
-
-      expect(@char).isDirectlyRight @leftWall
-      expect(@char).isDirectlyAbove @floor
-      expect(@char).isNextTo @leftWall
-      expect(@char).isNextTo @floor
-
-      @char.right()
-      for i in [1...20]
-        @char.update 50  # Give it a full second
-
-      expect(@char).not.isNextTo @leftWall
-      expect(@char).isNextTo @floor
-  
   describe 'scene', ->
     beforeEach ->
       @scene = new scene.Scene(100, 100, new gamejs.Rect(50, 50, 50, 50))

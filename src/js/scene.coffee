@@ -3,7 +3,8 @@ gamejs = require 'gamejs'
 
 exports.Scene = class Scene
   # viewportRect is in screen coordinates.
-  constructor: (@screenWidth, @screenHeight, @viewportRect) ->
+  constructor: (@screenWidth, @screenHeight, @viewportRect,\
+                @worldWidth, @worldHeight) ->
     @solids = new gamejs.sprite.Group()
 
   ###

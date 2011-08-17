@@ -20,6 +20,9 @@ exports.Character = class Character extends gamejs.sprite.Sprite
 
     collides = gamejs.sprite.spriteCollide(this, @scene.solids)
     if collides.length > 0
+      # TODO make trial attempts to fit the sprite towards the collision
+      #  - hopefully that will remove gaps undernear characters after they jump.
+      
       # try undoing X movement
       @rect.left -= movement[0]
       if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
@@ -47,25 +50,28 @@ exports.Character = class Character extends gamejs.sprite.Sprite
 
   applyMotions: (msDuration) ->
     # remove old motions, effect slowdowns
-    motion[2] -= msDuration for motion in @motions
-    @motions = (motion for motion in @motions when motion[2] > 0)
+    @motions = (motion for motion in @motions when motion.time > 0)
+
+    # TODO decrease length of motion vector near end
+    motion.time -= msDuration for motion in @motions
+
     # sum motions
     @direction()
 
   direction: ->
     direction = [0.0, 0.0]
     for motion in @motions
-      direction = $v.add(direction, motion)
+      direction = $v.add(direction, [motion.x, motion.y])
 
     direction
 
   clearXMomentum: ->
     # filter all items from @motions where item[0] != 0.0
-    @motions = (motion for motion in @motions when motion[0] != 0.0)
+    @motions = (motion for motion in @motions when motion.x != 0.0)
 
   clearYMomentum: ->
     # filter all items from @motions where item[1] != 0.0
-    @motions = (motion for motion in @motions when motion[1] != 0.0)
+    @motions = (motion for motion in @motions when motion.y != 0.0)
 
   # TODO
   # move some of this to an entity class
@@ -76,26 +82,25 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @handleCollision(movement)
 
     # apply gravity by adding gravity vector to @motions
-    #@addMotion(0.0, -0.01)
+    @addMotion(0.0, -0.1, time = 100, gravity = true)
 
-  addMotion: (x, y, time = 50) ->
-    # TODO limit x and y motion
-    @motions[@motions.length] = [x, y, time]
+  addMotion: (x, y, time = 200, gravity = false) ->
+    # TODO limit x and y motion?
+    @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
 
   left: ->
-    currentSpeed = @direction()[0]
-    @addMotion(Math.max(-@maxSpeed, currentSpeed - @speed), 0.0)
+    @addMotion(-@speed, 0.0)
     @
 
   right: ->
-    currentSpeed = @direction()[0]
-    @addMotion(Math.min(@maxSpeed, currentSpeed + @speed), 0.0)
+    @addMotion(@speed, 0.0)
     @
 
   isJumping: ->
-    true in (motion[1] != 0.0 for motion in @motions)
+    jumps = (motion for motion in @motions when motion.y != 0 and not motion.gravity)
+    jumps.length > 0
 
   jump: ->
-    if not @isJumping
-      @addMotion(0.0, @maxSpeed)
+    if not @isJumping()
+      @addMotion(0.0, @maxSpeed, 100)
     @
