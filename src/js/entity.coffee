@@ -116,13 +116,44 @@ exports.Character = class Character extends Entity
     @handleCollision(movement)
 
     # apply gravity by adding gravity vector to @motions
-    if (motion for motion in @motions when motion.gravity).length == 0
-      @addMotion(0.0, @gravitySpeed, time = 1000000000, gravity = true)
+    if (motion for motion in @motions when motion.type == 'gravity').length == 0
+      @addMotion(0.0, @gravitySpeed, time = 1000000000, type = 'gravity')
 
+  addMotion: (x, y, time = 200, type = 'default') ->
+    @motions[@motions.length] = x: x, y: y, time: time, type: type
+
+
+exports.NPCharacter = class NPCharacter extends Character
+  constructor: (scene, rect, @behavior) ->
+    super(scene, rect)
+
+  pace: (msDuration) ->
+    # setup for when starting
+    if not @paceDirection?
+      @paceDirection = -1.0
+      @paceCenter = @position[0]
+      # @lastPace != @position[0] when no collision occured
+      @lastPace = @paceCenter - @paceDirection
+
+    # if we stopped (because of collision) or if we have walked far enough
+    if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > @behavior.distance
+      # clear existing pacing motions
+      @motions = (motion for motion in @motions when motion.type != 'pacing')
+      @paceDirection *= -1.0  # switch direction
+
+    @addMotion(@paceDirection * @speed, 0.0, 1, type='pacing')
+    @lastPace = @position[0]
+  
+  update: (msDuration) ->
+    super(msDuration)
+    if @behavior.type == 'pacing'
+      @pace(msDuration)
+
+
+exports.Player = class Player extends Character
+  update: (msDuration) ->
+    super(msDuration)
     @scene.center(@position)
-
-  addMotion: (x, y, time = 200, gravity = false) ->
-    @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
 
   left: ->
     @addMotion(-@speed, 0.0)
