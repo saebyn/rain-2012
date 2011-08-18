@@ -6,6 +6,7 @@ exports.Scene = class Scene
   constructor: (@screenWidth, @screenHeight, @viewportRect,\
                 @worldWidth, @worldHeight) ->
     @solids = new gamejs.sprite.Group()
+    @centerRect = new gamejs.Rect(0, 0, @screenWidth / 2, @screenHeight /2)
 
   ###
   # 
@@ -20,6 +21,17 @@ exports.Scene = class Scene
   # \/
   #
   ###
+
+  center: (worldPosition) ->
+    @viewportRect.center = [worldPosition[0], @screenHeight - worldPosition[1]]
+    if @viewportRect.bottom > @worldHeight
+      @viewportRect.bottom = @worldHeight
+
+    if @viewportRect.left < 0
+      @viewportRect.left = 0
+      
+    if @viewportRect.right > @worldWidth
+      @viewportRect.right = @worldWidth
 
   toWorldCoord: (rect) ->
     rectCopy = rect.clone()

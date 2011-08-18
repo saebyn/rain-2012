@@ -23,9 +23,9 @@ gamejs.ready ->
   characters.add(player)
 
   for name, spec of level.solids
-    sprite = new gamejs.sprite.Sprite()
-    sprite.rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
-    sprite.image = new gamejs.Surface(sprite.rect)
+    rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
+    sprite = new entity.Entity(scene, rect)
+    sprite.image = new gamejs.Surface(rect)
     sprite.image.fill(spec.color)
     scene.solids.add(sprite)
 
@@ -51,7 +51,7 @@ gamejs.ready ->
     playerMove()
     characters.update(msDuration)
     display.clear()
-    display.blit((new gamejs.font.Font('30px Sans-serif')).render('    ' + player.rect.toString()))
+    display.blit((new gamejs.font.Font('30px Sans-serif')).render('    {x: ' + Math.round(player.position[0]) + ', y: ' + Math.round(player.position[1]) + '}'))
     scene.solids.draw(display)
     characters.draw(display)
 

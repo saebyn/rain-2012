@@ -8,10 +8,8 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
       # scene setup
       @scene = new scene.Scene(100, 100, new gamejs.Rect(0, 0, 100, 100))
       @char = new entity.Character(@scene, new gamejs.Rect(25, 30, 10, 10))
-      @leftWall = new gamejs.sprite.Sprite()
-      @leftWall.rect = new gamejs.Rect(0, 0, 10, 40)
-      @floor = new gamejs.sprite.Sprite()
-      @floor.rect = new gamejs.Rect(0, 40, 40, 10)
+      @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 0, 10, 40))
+      @floor = new entity.Entity(@scene, new gamejs.Rect(0, 40, 40, 10))
 
       @scene.solids.add [@leftWall, @floor]
 
@@ -55,6 +53,11 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
   describe 'scene', ->
     beforeEach ->
       @scene = new scene.Scene(100, 100, new gamejs.Rect(50, 50, 50, 50))
+      @char = new entity.Character(@scene, new gamejs.Rect(25, 30, 10, 10))
+      @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 0, 10, 40))
+      @floor = new entity.Entity(@scene, new gamejs.Rect(0, 40, 40, 10))
+
+      @scene.solids.add [@leftWall, @floor]
 
     it 'should convert world coordinates to screen coordinates', ->
       screenRect = @scene.toScreenRect [50, 10], [10, 10]
@@ -68,6 +71,21 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
       [x, y] = @scene.toWorldCoord screenRect
       expect(x).toEqual(50)
       expect(y).toEqual(10)
+
+    it 'should move the viewport when the player moves right off the screen', ->
+      @scene.center(@char.position)
+      oldViewportRightEdge = @scene.viewportRect.right
+      @char.position[0] += 100
+      @scene.center(@char.position)
+      expect(oldViewportRightEdge).toBeLessThan(@scene.viewportRect.right)
+
+    it 'should cause the screen position of the left wall to change when player moves right off the screen', ->
+      @scene.center(@char.position)
+      oldLeftWallX = @leftWall.rect.left
+      @char.position[0] += 100
+      @scene.center(@char.position)
+      expect(@leftWall.rect.left).not.toEqual(oldLeftWallX)
+
 
   jasmine.getEnv().addReporter(new jasmine.TrivialReporter())
   jasmine.getEnv().execute()

@@ -2,7 +2,7 @@ gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
 
-exports.Character = class Character extends gamejs.sprite.Sprite
+exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
     @width = rect.width
@@ -17,6 +17,10 @@ exports.Character = class Character extends gamejs.sprite.Sprite
       return
 
     $o.accessor(this, 'rect', rectGet, rectSet)
+
+exports.Character = class Character extends Entity
+  constructor: (scene, rect) ->
+    super(scene, rect)
     @motions = []
     @landed = false
     @speed = 0.1
@@ -57,7 +61,8 @@ exports.Character = class Character extends gamejs.sprite.Sprite
       for y in [movement[1]..0]
         # make trial changes
         @position = oldPosition.slice()
-        @position[1] += y
+        @position[1] += y + 0.1  # a little extra,
+                                 # a hack to keep from catching the floor
 
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
@@ -107,6 +112,8 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     # apply gravity by adding gravity vector to @motions
     if (motion for motion in @motions when motion.gravity).length == 0
       @addMotion(0.0, @gravitySpeed, time = 1000000000, gravity = true)
+
+    @scene.center(@position)
 
   addMotion: (x, y, time = 200, gravity = false) ->
     @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
