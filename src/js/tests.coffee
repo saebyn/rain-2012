@@ -44,6 +44,14 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
       expect(@char).not.isNextTo @leftWall
       expect(@char).isNextTo @floor
 
+    it 'should automatically update its rectangle when its position changes', ->
+      oldX = @char.rect.left
+      oldY = @char.rect.top
+      @char.position[0] += 1
+      @char.position[1] += 1
+      expect(@char.rect.left).toEqual(oldX + 1)
+      expect(@char.rect.top).toEqual(oldY - 1)
+
   describe 'scene', ->
     beforeEach ->
       @scene = new scene.Scene(100, 100, new gamejs.Rect(50, 50, 50, 50))

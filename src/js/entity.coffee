@@ -1,23 +1,34 @@
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
+$o = require 'gamejs/utils/objects'
 
 exports.Character = class Character extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
-    @rect = rect
+    @width = rect.width
+    @height = rect.height
+    @position = @scene.toWorldCoord rect
+
+    rectGet = ->
+      @scene.toScreenRect(@position, [@width, @height])
+
+    rectSet = (rect) ->
+      @position = @scene.toWorldCoord(rect)
+      return
+
+    $o.accessor(this, 'rect', rectGet, rectSet)
     @motions = []
-    @position = @scene.toWorldCoord @rect
     @landed = false
     @speed = 0.1
-    @jumpSpeed = 0.5
+    @jumpSpeed = 0.8
     @maxSpeed = 0.5
-    @gravitySpeed = -0.2
+    @gravitySpeed = -0.4
 
   handleCollision: (movement) ->
     oldPosition = @position.slice()
     @position = $v.add(@position, movement)
-    # update sprite position on screen (only place rect should be written to)
-    @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+    # clean up the coordinates
+    @position = [(0.5 + @position[0]) | 0, (0.5 + @position[1]) | 0]
 
     collides = gamejs.sprite.spriteCollide(this, @scene.solids)
     if collides.length > 0
@@ -26,7 +37,6 @@ exports.Character = class Character extends gamejs.sprite.Sprite
         # make trial changes
         @position = oldPosition.slice()
         @position[0] += x
-        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
 
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
@@ -39,7 +49,6 @@ exports.Character = class Character extends gamejs.sprite.Sprite
 
         # if we fail to find a spot where we don't collide, just quit
         @position = oldPosition
-        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
 
       # save new X changes, but keep old Y value
       oldPosition = [@position[0], oldPosition[1]]
@@ -49,7 +58,6 @@ exports.Character = class Character extends gamejs.sprite.Sprite
         # make trial changes
         @position = oldPosition.slice()
         @position[1] += y
-        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
 
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
@@ -62,11 +70,6 @@ exports.Character = class Character extends gamejs.sprite.Sprite
 
         # if we fail to find a spot where we don't collide, just quit
         @position = oldPosition
-        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
-
-    # clean up the coordinates
-    @rect.left = (0.5 + @rect.left) | 0
-    @rect.top = (0.5 + @rect.top) | 0
 
   applyMotions: (msDuration) ->
     # Remove old motions (do this first so that every motion will get applied
