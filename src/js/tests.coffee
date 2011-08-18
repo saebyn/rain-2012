@@ -4,9 +4,6 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
   level = require 'level'
   gamejs = require 'gamejs'
 
-  describe 'level', ->
-
-
   describe 'entity', ->
     beforeEach ->
       # scene setup

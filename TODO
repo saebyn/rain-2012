@@ -1,0 +1,9 @@
+
+load JSON file at set path
+
+read world size from loaded file
+
+read player position from loaded file
+
+read solid object sprite rects & colors from loaded file
+

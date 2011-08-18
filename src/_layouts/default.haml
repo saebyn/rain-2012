@@ -45,6 +45,9 @@
   %script{:src => "/js/lib/yabble.js"}
   %script{:src => "/js/lib/gamejs.js"}
   :javascript
+    var $g = {
+      ajaxBaseHref: "/data/"
+    };
     require.setModuleRoot('js');
     require.run('app');
 

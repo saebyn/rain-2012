@@ -1,0 +1,19 @@
+
+Level file that holds:
+
+  * the player start position
+
+  * the size of the world
+
+  * wall/floor sprites (solid objects)
+
+  * background sprites
+
+  * etc
+
+Background sprites
+
+Layers of background sprites
+
+Parallax effect for layers of background sprites
+

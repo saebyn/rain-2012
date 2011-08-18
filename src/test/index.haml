@@ -26,6 +26,9 @@
   %script{:src => "/js/lib/jasmine.js"}
   %script{:src => "/js/lib/jasmine-html.js"}
   :javascript
+    var $g = {
+      ajaxBaseHref: "/data/"
+    };
     require.setModuleRoot('../js/');
     require.run('tests');
 
