@@ -5,63 +5,56 @@ scene = require 'scene'
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 400
 
-WORLD_WIDTH = 3000
-WORLD_HEIGHT = 400
-
-display = false
-
-player = false
-playerMove = ->
-
-characters = new gamejs.sprite.Group()
-scene = new scene.Scene(SCREEN_WIDTH, SCREEN_HEIGHT,
-                        new gamejs.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT),
-                        WORLD_WIDTH, WORLD_HEIGHT)
-#backgrounds = new gamejs.sprite.Group()
-#object_entities = new gamejs.sprite.Group()
-
-handleEvent = (event) ->
-  switch event.type
-    when gamejs.event.KEY_DOWN then switch event.key
-      when gamejs.event.K_a then playerMove = -> player.left()
-      when gamejs.event.K_d then playerMove = -> player.right()
-      when gamejs.event.K_SPACE then player.jump()
-    when gamejs.event.KEY_UP then switch event.key
-      when gamejs.event.K_a then playerMove = ->
-      when gamejs.event.K_d then playerMove = ->
-
-main = (msDuration) ->
-  # just let it skip a bit if we got slowed down that much
-  if msDuration > 100
-    msDuration = 100
-
-  handleEvent event for event in gamejs.event.get()
-  playerMove()
-  characters.update(msDuration)
-  display.clear()
-  display.blit((new gamejs.font.Font('30px Sans-serif')).render(player.rect.toString()))
-  scene.solids.draw(display)
-  characters.draw(display)
-
 gamejs.ready ->
+  characters = new gamejs.sprite.Group()
+  viewport = new gamejs.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
   display = gamejs.display.setMode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
-  player = new entity.Character(scene, new gamejs.Rect(25, SCREEN_HEIGHT - 56, 25, 45))
+  level = gamejs.http.load('level1.json')
+  scene = new scene.Scene(SCREEN_WIDTH, SCREEN_HEIGHT,
+                          viewport,
+                          level.size[0], level.size[1])
+
+  playerSize = [64, 128]
+  playerPosition = scene.toScreenRect(level.playerStart, playerSize)
+  player = new entity.Character(scene, playerPosition)
   player.image = new gamejs.Surface(player.rect)
   player.image.fill('#ff0000')
   characters.add(player)
 
-  floor = new gamejs.sprite.Sprite()
-  floor.rect = new gamejs.Rect(0, SCREEN_HEIGHT - 10, WORLD_WIDTH, 10)
-  floor.image = new gamejs.Surface(floor.rect)
-  floor.image.fill('#0000ff')
-  scene.solids.add(floor)
+  for name, spec of level.solids
+    sprite = new gamejs.sprite.Sprite()
+    sprite.rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
+    sprite.image = new gamejs.Surface(sprite.rect)
+    sprite.image.fill(spec.color)
+    scene.solids.add(sprite)
 
-  wall = new gamejs.sprite.Sprite()
-  wall.rect = new gamejs.Rect(0, 0, 10, SCREEN_HEIGHT - 10)
-  wall.image = new gamejs.Surface(wall.rect)
-  wall.image.fill('#0000ff')
-  scene.solids.add(wall)
+  # Hold a function to be called every frame to continue a player action.
+  playerMove = ->
+
+  main = (msDuration) ->
+    handleEvent = (event) ->
+      switch event.type
+        when gamejs.event.KEY_DOWN then switch event.key
+          when gamejs.event.K_a then playerMove = -> player.left()
+          when gamejs.event.K_d then playerMove = -> player.right()
+          when gamejs.event.K_SPACE then player.jump()
+        when gamejs.event.KEY_UP then switch event.key
+          when gamejs.event.K_a then playerMove = ->
+          when gamejs.event.K_d then playerMove = ->
+
+    # just let it skip a bit if we got slowed down that much
+    if msDuration > 100
+      msDuration = 100
+
+    handleEvent event for event in gamejs.event.get()
+    playerMove()
+    characters.update(msDuration)
+    display.clear()
+    display.blit((new gamejs.font.Font('30px Sans-serif')).render('    ' + player.rect.toString()))
+    scene.solids.draw(display)
+    characters.draw(display)
+
 
   gamejs.time.fpsCallback(main, this, 30)
 

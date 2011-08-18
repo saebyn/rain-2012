@@ -1,11 +1,7 @@
 require.ensure ['entity', 'scene', 'gamejs'], (require) ->
   entity = require 'entity'
   scene = require 'scene'
-  level = require 'level'
   gamejs = require 'gamejs'
-
-  describe 'level', ->
-
 
   describe 'entity', ->
     beforeEach ->
