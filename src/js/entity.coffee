@@ -48,6 +48,8 @@ exports.Character = class Character extends gamejs.sprite.Sprite
           @clearXMomentum()
           @clearYMomentum()
 
+    @rect.center = [(0.5 + @rect.center[0]) | 0, (0.5 + @rect.center[1]) | 0]
+
   applyMotions: (msDuration) ->
     # remove old motions, effect slowdowns
     @motions = (motion for motion in @motions when motion.time > 0)

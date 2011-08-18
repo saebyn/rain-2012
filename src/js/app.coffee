@@ -31,11 +31,15 @@ handleEvent = (event) ->
       when gamejs.event.K_d then playerMove = ->
 
 main = (msDuration) ->
+  # just let it skip a bit if we got slowed down that much
+  if msDuration > 100
+    msDuration = 100
+
   handleEvent event for event in gamejs.event.get()
   playerMove()
   characters.update(msDuration)
   display.clear()
-  display.blit((new gamejs.font.Font('30px Sans-serif')).render('' + msDuration))
+  display.blit((new gamejs.font.Font('30px Sans-serif')).render(player.rect.toString()))
   scene.solids.draw(display)
   characters.draw(display)
 
