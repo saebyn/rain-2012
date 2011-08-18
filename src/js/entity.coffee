@@ -9,8 +9,9 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @position = @scene.toWorldCoord @rect
     @landed = false
     @speed = 0.1
-    @jumpSpeed = 0.4
+    @jumpSpeed = 0.5
     @maxSpeed = 0.5
+    @gravitySpeed = -0.2
 
   handleCollision: (movement) ->
     @position = $v.add(@position, movement)
@@ -84,7 +85,7 @@ exports.Character = class Character extends gamejs.sprite.Sprite
 
     # apply gravity by adding gravity vector to @motions
     if (motion for motion in @motions when motion.gravity).length == 0
-      @addMotion(0.0, -0.1, time = 1000000000, gravity = true)
+      @addMotion(0.0, @gravitySpeed, time = 1000000000, gravity = true)
 
   addMotion: (x, y, time = 200, gravity = false) ->
     @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
