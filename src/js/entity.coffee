@@ -14,41 +14,59 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @gravitySpeed = -0.2
 
   handleCollision: (movement) ->
+    oldPosition = @position.slice()
     @position = $v.add(@position, movement)
     # update sprite position on screen (only place rect should be written to)
-    @rect.center = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+    @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
 
     collides = gamejs.sprite.spriteCollide(this, @scene.solids)
     if collides.length > 0
-      # TODO make trial attempts to fit the sprite towards the collision
-      #  - hopefully that will remove gaps undernear characters after they jump.
-      
-      # try undoing X movement
-      @rect.left -= movement[0]
-      if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
-        # that was enough
-        # fix position
-        @position[0] -= movement[0]
-        @clearXMomentum()
-      else
-        # undo X change, try Y next
-        @rect.left += movement[0]
-        @rect.top += movement[1]  # backwards because of difference between screen and world coords
+      # fix X coord
+      for x in [movement[0]..0]
+        # make trial changes
+        @position = oldPosition.slice()
+        @position[0] += x
+        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
-          # fix position
-          @position[1] -= movement[1]
-          @clearYMomentum()
-        else
-          # do both coordinates (already done with Y)
-          @rect.left -= movement[0]
-          # fix position
-          @position[0] -= movement[0]
-          @position[1] -= movement[1]
-          @clearXMomentum()
-          @clearYMomentum()
+                
+          # whatever we hit stopped us, whichever direction we were going.
+          if Math.abs(oldPosition[0] - @position[0]) < Math.abs(movement[0])
+            @clearXMomentum()
 
-    @rect.center = [(0.5 + @rect.center[0]) | 0, (0.5 + @rect.center[1]) | 0]
+          break
+
+        # if we fail to find a spot where we don't collide, just quit
+        @position = oldPosition
+        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+
+      # save new X changes, but keep old Y value
+      oldPosition = [@position[0], oldPosition[1]]
+
+      # fix Y coord
+      for y in [movement[1]..0]
+        # make trial changes
+        @position = oldPosition.slice()
+        @position[1] += y
+        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+
+        if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
+          # that was enough
+                
+          # whatever we hit stopped us, whichever direction we were going.
+          if Math.abs(oldPosition[1] - @position[1]) < Math.abs(movement[1])
+            @clearYMomentum()
+
+          break
+
+        # if we fail to find a spot where we don't collide, just quit
+        @position = oldPosition
+        @rect = @scene.toScreenRect(@position, [@rect.width, @rect.height])
+
+    # clean up the coordinates
+    @rect.left = (0.5 + @rect.left) | 0
+    @rect.top = (0.5 + @rect.top) | 0
 
   applyMotions: (msDuration) ->
     # Remove old motions (do this first so that every motion will get applied
