@@ -1,6 +1,6 @@
 {
   size: [3000, 400],
-  playerStart: [50, 100],
+  playerStart: [50, 148],
   solids: {
     'floor': {x: 0, y: 10, width: 3000, height: 10, color: "#0000ff"},
     'left_wall': {x: 0, y: 400, width: 10, height: 2990, color: "#0000aa"},
