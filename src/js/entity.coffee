@@ -7,7 +7,9 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @rect = rect
     @motions = []
     @position = @scene.toWorldCoord @rect
+    @landed = false
     @speed = 0.1
+    @jumpSpeed = 0.4
     @maxSpeed = 0.5
 
   handleCollision: (movement) ->
@@ -72,6 +74,7 @@ exports.Character = class Character extends gamejs.sprite.Sprite
   clearYMomentum: ->
     # filter all @motions where item[1] != 0.0
     @motions = (motion for motion in @motions when motion.y != 0.0)
+    @landed = true
 
   update: (msDuration) ->
     direction = @applyMotions(msDuration)
@@ -80,7 +83,8 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @handleCollision(movement)
 
     # apply gravity by adding gravity vector to @motions
-    @addMotion(0.0, -0.1, time = 100, gravity = true)
+    if (motion for motion in @motions when motion.gravity).length == 0
+      @addMotion(0.0, -0.1, time = 1000000000, gravity = true)
 
   addMotion: (x, y, time = 200, gravity = false) ->
     @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
@@ -93,11 +97,8 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @addMotion(@speed, 0.0)
     @
 
-  isJumping: ->
-    jumps = (motion for motion in @motions when motion.y != 0 and not motion.gravity)
-    jumps.length > 0
-
   jump: ->
-    if not @isJumping()
-      @addMotion(0.0, @maxSpeed, 100)
+    if @landed
+      @landed = false
+      @addMotion(0.0, @jumpSpeed, 100)
     @
