@@ -1,9 +1,6 @@
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 
-threshold = (value, level, min = 0.0) ->
-  if Math.abs(value) < level then min else value
-
 exports.Character = class Character extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
@@ -51,13 +48,14 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @rect.center = [(0.5 + @rect.center[0]) | 0, (0.5 + @rect.center[1]) | 0]
 
   applyMotions: (msDuration) ->
-    # remove old motions, effect slowdowns
+    # Remove old motions (do this first so that every motion will get applied
+    # at least once).
     @motions = (motion for motion in @motions when motion.time > 0)
 
-    # TODO decrease length of motion vector near end
+    # Update elapsed time of motions.
     motion.time -= msDuration for motion in @motions
 
-    # sum motions
+    # Sum motions into a direction vector for this frame.
     @direction()
 
   direction: ->
@@ -68,15 +66,13 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     direction
 
   clearXMomentum: ->
-    # filter all items from @motions where item[0] != 0.0
+    # filter all @motions where item[0] != 0.0
     @motions = (motion for motion in @motions when motion.x != 0.0)
 
   clearYMomentum: ->
-    # filter all items from @motions where item[1] != 0.0
+    # filter all @motions where item[1] != 0.0
     @motions = (motion for motion in @motions when motion.y != 0.0)
 
-  # TODO
-  # move some of this to an entity class
   update: (msDuration) ->
     direction = @applyMotions(msDuration)
 
@@ -87,7 +83,6 @@ exports.Character = class Character extends gamejs.sprite.Sprite
     @addMotion(0.0, -0.1, time = 100, gravity = true)
 
   addMotion: (x, y, time = 200, gravity = false) ->
-    # TODO limit x and y motion?
     @motions[@motions.length] = x: x, y: y, time: time, gravity: gravity
 
   left: ->
