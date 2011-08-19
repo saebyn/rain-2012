@@ -1,9 +1,15 @@
 
 Level file that holds:
 
-  * background sprites
+  * background sprite definitions
 
   * NPCs
+
+NPCs
+
+  * Can be right-clicked to enter dialog
+
+  * Will stop their "idle" activity when talking (in dialog)
 
 Background sprites
 
