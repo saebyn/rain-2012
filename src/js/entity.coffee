@@ -127,7 +127,7 @@ exports.NPCharacter = class NPCharacter extends Character
   constructor: (scene, rect, @behavior) ->
     super(scene, rect)
 
-  pace: (msDuration) ->
+  pace: () ->
     # setup for when starting
     if not @paceDirection?
       @paceDirection = -1.0
@@ -147,7 +147,7 @@ exports.NPCharacter = class NPCharacter extends Character
   update: (msDuration) ->
     super(msDuration)
     if @behavior.type == 'pacing'
-      @pace(msDuration)
+      @pace()
 
 
 exports.Player = class Player extends Character
