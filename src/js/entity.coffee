@@ -6,6 +6,7 @@ exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
     @worldRect = @scene.toWorldCoord rect
+    @player = false
 
     rectGet = ->
       @scene.toScreenRect(@worldRect)
@@ -127,7 +128,10 @@ exports.NPCharacter = class NPCharacter extends Character
   constructor: (scene, rect, @behavior) ->
     super(scene, rect)
 
-  pace: () ->
+  startDialog: ->
+    @behavior.type = 'dialog'
+
+  pace: ->
     # setup for when starting
     if not @paceDirection?
       @paceDirection = -1.0
@@ -151,6 +155,10 @@ exports.NPCharacter = class NPCharacter extends Character
 
 
 exports.Player = class Player extends Character
+  constructor: (scene, rect) ->
+    super(scene, rect)
+    @player = true
+
   update: (msDuration) ->
     super(msDuration)
     @scene.center(@position)

@@ -37,9 +37,21 @@ gamejs.ready ->
   # Hold a function to be called every frame to continue a player action.
   playerMove = ->
 
+  leftClick = (point) ->
+    # find character clicked on
+    charactersClicked = characters.collidePoint(point)
+    # launch dialog subsys for first clicked NPC
+    for char in charactersClicked
+      if not char.player
+        char.startDialog()  # tell NPC that we want to talk
+        # TODO start dialog overlay
+        break
+
   main = (msDuration) ->
     handleEvent = (event) ->
       switch event.type
+        when gamejs.event.MOUSE_DOWN then switch event.button
+          when 0 then leftClick(event.pos)
         when gamejs.event.KEY_DOWN then switch event.key
           when gamejs.event.K_a then playerMove = -> player.left()
           when gamejs.event.K_d then playerMove = -> player.right()
