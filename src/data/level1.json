@@ -21,6 +21,11 @@
               behavior: {
                 type: 'pacing',
                 distance: 1300.0
+              }},
+    'test3': {x: 900, y: 148, width: 64, height: 128, color: "#0ff0ff",
+              behavior: {
+                type: 'following',
+                target: 'player'
               }}
   }
 }

@@ -94,6 +94,12 @@ exports.Character = class Character extends Entity
     # Sum motions into a direction vector for this frame.
     @direction()
 
+  moving: (type=null) ->
+    if type?
+      (motion for motion in @motions when motion.type == type).length > 0
+    else
+      @motions.length > 0
+
   direction: ->
     direction = [0.0, 0.0]
     for motion in @motions
@@ -147,11 +153,31 @@ exports.NPCharacter = class NPCharacter extends Character
 
     @addMotion(@paceDirection * @speed, 0.0, 1, type='pacing')
     @lastPace = @position[0]
-  
+ 
+  follow: ->
+    closeEnough = 80.0
+
+    if not @followTarget?
+      if @behavior.target == 'player'
+        @followTarget = @scene.player
+
+    if not @moving('following')
+      if @followTarget.position[0] < @position[0] - closeEnough
+        direction = [-1, 0]
+      else if @followTarget.position[0] > @position[0] + closeEnough
+        direction = [1, 0]
+      else
+        return
+      
+      # TODO follow up stairs and such
+
+      @addMotion(direction[0] * @speed, direction[1] * @jumpSpeed, 100, type='following')
+
   update: (msDuration) ->
     super(msDuration)
-    if @behavior.type == 'pacing'
-      @pace()
+    switch @behavior.type
+      when 'pacing' then @pace()
+      when 'following' then @follow()
 
 
 exports.Player = class Player extends Character

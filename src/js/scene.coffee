@@ -5,6 +5,10 @@ exports.Scene = class Scene
   # viewportRect is in screen coordinates.
   constructor: (@viewportRect, @worldWidth, @worldHeight) ->
     @solids = new gamejs.sprite.Group()
+    @characters = new gamejs.sprite.Group()
+
+  setPlayer: (@player) ->
+    @characters.add(@player)
 
   center: (worldPosition) ->
     @viewportRect.center = worldPosition

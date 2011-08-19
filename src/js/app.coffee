@@ -6,7 +6,6 @@ SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 400
 
 gamejs.ready ->
-  characters = new gamejs.sprite.Group()
   viewport = new gamejs.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
   display = gamejs.display.setMode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
@@ -18,14 +17,14 @@ gamejs.ready ->
   player = new entity.Player(scene, playerPosition)
   player.image = new gamejs.Surface(player.rect)
   player.image.fill('#ff0000')
-  characters.add(player)
+  scene.setPlayer(player)
 
   for name, spec of level.npcs
     rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
     sprite = new entity.NPCharacter(scene, rect, spec.behavior)
     sprite.image = new gamejs.Surface(rect)
     sprite.image.fill(spec.color)
-    characters.add(sprite)
+    scene.characters.add(sprite)
 
   for name, spec of level.solids
     rect = scene.toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
@@ -39,7 +38,7 @@ gamejs.ready ->
 
   leftClick = (point) ->
     # find character clicked on
-    charactersClicked = characters.collidePoint(point)
+    charactersClicked = scene.characters.collidePoint(point)
     # launch dialog subsys for first clicked NPC
     for char in charactersClicked
       if not char.player
@@ -66,11 +65,11 @@ gamejs.ready ->
 
     handleEvent event for event in gamejs.event.get()
     playerMove()
-    characters.update(msDuration)
+    scene.characters.update(msDuration)
     display.clear()
-    display.blit((new gamejs.font.Font('30px Sans-serif')).render('    {x: ' + Math.round(player.position[0]) + ', y: ' + Math.round(player.position[1]) + '}'))
+    display.blit((new gamejs.font.Font('30px Sans-serif')).render('    {x: ' + Math.round(scene.player.position[0]) + ', y: ' + Math.round(scene.player.position[1]) + '} ' + msDuration))
     scene.solids.draw(display)
-    characters.draw(display)
+    scene.characters.draw(display)
 
 
   gamejs.time.fpsCallback(main, this, 30)
