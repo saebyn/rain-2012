@@ -11,19 +11,17 @@ gamejs.ready ->
   display = gamejs.display.setMode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
   level = gamejs.http.load('level1.json')
-  scene = new scene.Scene(SCREEN_WIDTH, SCREEN_HEIGHT,
-                          viewport,
-                          level.size[0], level.size[1])
+  scene = new scene.Scene(viewport, level.size[0], level.size[1])
 
   playerSize = [64, 128]
-  playerPosition = scene.toScreenRect(level.playerStart, playerSize)
+  playerPosition = scene.toScreenRect(new gamejs.Rect(level.playerStart, playerSize))
   player = new entity.Character(scene, playerPosition)
   player.image = new gamejs.Surface(player.rect)
   player.image.fill('#ff0000')
   characters.add(player)
 
   for name, spec of level.solids
-    rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
+    rect = scene.toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
     sprite = new entity.Entity(scene, rect)
     sprite.image = new gamejs.Surface(rect)
     sprite.image.fill(spec.color)

@@ -5,18 +5,24 @@ $o = require 'gamejs/utils/objects'
 exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
-    @width = rect.width
-    @height = rect.height
-    @position = @scene.toWorldCoord rect
+    @worldRect = @scene.toWorldCoord rect
 
     rectGet = ->
-      @scene.toScreenRect(@position, [@width, @height])
+      @scene.toScreenRect(@worldRect)
 
     rectSet = (rect) ->
-      @position = @scene.toWorldCoord(rect)
+      @worldRect = @scene.toWorldCoord(rect)
       return
 
+    positionGet = ->
+      @worldRect.topleft
+
+    positionSet = (point) ->
+      @worldRect.topleft = point
+
     $o.accessor(this, 'rect', rectGet, rectSet)
+    $o.accessor(this, 'position', positionGet, positionSet)
+
 
 exports.Character = class Character extends Entity
   constructor: (scene, rect) ->
@@ -24,9 +30,9 @@ exports.Character = class Character extends Entity
     @motions = []
     @landed = false
     @speed = 0.1
-    @jumpSpeed = 0.8
+    @jumpSpeed = -0.8
     @maxSpeed = 0.5
-    @gravitySpeed = -0.4
+    @gravitySpeed = 0.4
 
   handleCollision: (movement) ->
     oldPosition = @position.slice()
@@ -40,7 +46,7 @@ exports.Character = class Character extends Entity
       for x in [movement[0]..0]
         # make trial changes
         @position = oldPosition.slice()
-        @position[0] += x
+        @worldRect.left += x
 
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
@@ -61,8 +67,8 @@ exports.Character = class Character extends Entity
       for y in [movement[1]..0]
         # make trial changes
         @position = oldPosition.slice()
-        @position[1] += y + 0.1  # a little extra,
-                                 # a hack to keep from catching the floor
+        @worldRect.top += y - 0.1  # a little extra,
+                                   # a hack to keep from catching the floor
 
         if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
           # that was enough
