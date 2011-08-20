@@ -8,7 +8,7 @@ require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
     beforeEach ->
       # scene setup
       @scene = new scene.Scene(new gamejs.Rect(0, 0, 100, 100), 100, 100)
-      @char = new entity.Character(@scene, new gamejs.Rect(25, 80, 10, 10))
+      @char = new entity.Player(@scene, new gamejs.Rect(25, 80, 10, 10))
       @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 0, 10, 100))
       @floor = new entity.Entity(@scene, new gamejs.Rect(0, 90, 40, 10))
 
@@ -62,7 +62,7 @@ require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
   describe 'scene', ->
     beforeEach ->
       @scene = new scene.Scene(new gamejs.Rect(49, 50, 50, 50), 200, 100)
-      @char = new entity.Character(@scene, new gamejs.Rect(25, 80, 10, 10))
+      @char = new entity.Player(@scene, new gamejs.Rect(25, 80, 10, 10))
       @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 50, 10, 40))
       @floor = new entity.Entity(@scene, new gamejs.Rect(0, 90, 40, 10))
 
@@ -97,15 +97,15 @@ require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
 
   describe 'pathfinding', ->
     beforeEach ->
-      @scene = new scene.Scene(100, 100, new gamejs.Rect(50, 50, 50, 50))
-      @char = new entity.Player(@scene, new gamejs.Rect(25, 30, 10, 10))
-      @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 0, 10, 40))
-      @floor = new entity.Entity(@scene, new gamejs.Rect(0, 40, 40, 10))
+      @scene = new scene.Scene(new gamejs.Rect(49, 50, 50, 50), 200, 100)
+      @char = new entity.Player(@scene, new gamejs.Rect(25, 80, 10, 10))
+      @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 50, 10, 40))
+      @floor = new entity.Entity(@scene, new gamejs.Rect(0, 90, 40, 10))
       @map = @scene.getPathfindingMap(@char)
 
     it 'should compute an estimated distance as a lower bound for the actual distance', ->
       destination = [90, 30]
-      expect(@map.estimatedDistance(@char.position, destination)).not.toBeGreaterThan(@map.actualDistance(@char.position, destination))
+      expect(@map.estimatedDistance(@char.worldRect.topleft, destination)).not.toBeGreaterThan(@map.actualDistance(@char.worldRect.topleft, destination))
 
   jasmine.getEnv().addReporter(new jasmine.TrivialReporter())
   jasmine.getEnv().execute()
