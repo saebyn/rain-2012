@@ -26,7 +26,7 @@ exports.Scene = class Scene
     if @viewportRect.right > @worldWidth
       @viewportRect.right = @worldWidth
 
-  toWorldCoord: (rect) ->
+  toWorldRect: (rect) ->
     # convert screen coordinates to world coordinates
     rect.move(@viewportRect)
 

@@ -77,7 +77,7 @@ require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
 
     it 'should convert screen coordinates to world coordinates', ->
       screenRect = new gamejs.Rect(0, 40, 10, 10)
-      worldRect = @scene.toWorldCoord screenRect
+      worldRect = @scene.toWorldRect(screenRect)
       expect(worldRect.left).toEqual(49)
       expect(worldRect.top).toEqual(90)
 

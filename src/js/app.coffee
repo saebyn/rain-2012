@@ -20,7 +20,7 @@ gamejs.ready ->
   scene.setPlayer(player)
 
   for name, spec of level.npcs
-    rect = scene.toScreenRect([spec.x, spec.y], [spec.width, spec.height])
+    rect = scene.toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
     sprite = new entity.NPCharacter(scene, rect, spec.behavior)
     sprite.image = new gamejs.Surface(rect)
     sprite.image.fill(spec.color)

@@ -5,14 +5,14 @@ $o = require 'gamejs/utils/objects'
 exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
-    @worldRect = @scene.toWorldCoord rect
+    @worldRect = @scene.toWorldRect(rect)
     @player = false
 
     rectGet = ->
       @scene.toScreenRect(@worldRect)
 
     rectSet = (rect) ->
-      @worldRect = @scene.toWorldCoord(rect)
+      @worldRect = @scene.toWorldRect(rect)
       return
 
     positionGet = ->
