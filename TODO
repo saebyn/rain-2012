@@ -1,6 +1,8 @@
 
 Moving NPCs
 
+  * NPCs use pathfinding code to move
+
   * Switch from one behavior to another based on world conditions/input
 
     - Finite state machine
@@ -13,11 +15,14 @@ Moving NPCs
 
     - State representes the currently desired behavior
 
-  * NPCs use pathfinding code to move
-
   * A waypoint behavior will follow a path set by a series of points, and optionally
     return to the original point and cycle through the path indefintely.
 
     - NPCs may go at a slower or faster pace during each leg of the path,
       and wait a set amount of time at each waypoint.
+
+
+Doors/portals that load new level files
+
+Items that can be picked up by clicking on them.
 

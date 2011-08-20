@@ -2,6 +2,11 @@ gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
 
+
+threshold = (value, level, min = 0.0) ->
+  if Math.abs(value) < level then min else value
+
+
 exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
@@ -28,106 +33,87 @@ exports.Entity = class Entity extends gamejs.sprite.Sprite
 exports.Character = class Character extends Entity
   constructor: (scene, rect) ->
     super(scene, rect)
-    @motions = []
+    @direction = [0.0, 0.0]  # our current movement vector
+
     @landed = false
-    @speed = 0.1
-    @jumpSpeed = -0.8
-    @maxSpeed = 0.5
+
+    @baseSpeed = 0.1
+    @speedIncrement = 0.2
+    @maxSpeed = 1.2
+
+    @jumpSpeed = -1.2
     @gravitySpeed = 0.4
+    @maxGravitySpeed = 1.0
 
-  handleCollision: (movement) ->
-    oldPosition = @position.slice()
-    @position = $v.add(@position, movement)
-    # clean up the coordinates
-    @position = [(0.5 + @position[0]) | 0, (0.5 + @position[1]) | 0]
+  handleCollisions: (movement) ->
+    # if applying movement to the rect results in no collisions, return movement
+    rect = @worldRect.move(movement)
+    collisions = (sprite for sprite in @scene.solids.sprites() when sprite.worldRect.collideRect(rect))
+    # if there are any collisions, handle them
+    for sprite in collisions
+      if rect.collideRect(sprite.worldRect)  # because we may no longer collide
+        # If we are trying to move and we're overlapping on that side, and it's
+        # not further than we were trying to go...
 
-    collides = gamejs.sprite.spriteCollide(this, @scene.solids)
-    if collides.length > 0
-      # fix X coord
-      for x in [movement[0]..0]
-        # make trial changes
-        @position = oldPosition.slice()
-        @worldRect.left += x
+        if movement[0] < 0 and rect.left <= sprite.worldRect.right and (rect.left - sprite.worldRect.right) > movement[0]
+          rect.left = sprite.worldRect.right + 1
+          @clearXMomentum()
+        else if movement[0] > 0 and rect.right >= sprite.worldRect.left and (rect.right - sprite.worldRect.left) < movement[0]
+          rect.right = sprite.worldRect.left - 1
+          @clearXMomentum()
 
-        if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
-          # that was enough
-                
-          # whatever we hit stopped us, whichever direction we were going.
-          if Math.abs(oldPosition[0] - @position[0]) < Math.abs(movement[0])
-            @clearXMomentum()
+      if rect.collideRect(sprite.worldRect)  # because we may no longer collide
+        if movement[1] < 0 and rect.top <= sprite.worldRect.bottom
+          # if we are trying to move up and we're overlapping on our top side
+          rect.top = sprite.worldRect.bottom + 1
+          @clearYMomentum()
+        else if movement[1] > 0 and rect.bottom >= sprite.worldRect.top
+          # if we are trying to fall and we're overlapping on our bottom side,
+          rect.bottom = sprite.worldRect.top - 1
+          @landed = true
+          @clearYMomentum()
 
-          break
-
-        # if we fail to find a spot where we don't collide, just quit
-        @position = oldPosition
-
-      # save new X changes, but keep old Y value
-      oldPosition = [@position[0], oldPosition[1]]
-
-      # fix Y coord
-      for y in [movement[1]..0]
-        # make trial changes
-        @position = oldPosition.slice()
-        @worldRect.top += y - 0.1  # a little extra,
-                                   # a hack to keep from catching the floor
-
-        if true not in (gamejs.sprite.collideRect(this, sprite) for sprite in collides)
-          # that was enough
-                
-          # whatever we hit stopped us, whichever direction we were going.
-          if Math.abs(oldPosition[1] - @position[1]) < Math.abs(movement[1])
-            @clearYMomentum()
-
-          break
-
-        # if we fail to find a spot where we don't collide, just quit
-        @position = oldPosition
-
-  applyMotions: (msDuration) ->
-    # Remove old motions (do this first so that every motion will get applied
-    # at least once).
-    @motions = (motion for motion in @motions when motion.time > 0)
-
-    # Update elapsed time of motions.
-    motion.time -= msDuration for motion in @motions
-
-    # Sum motions into a direction vector for this frame.
-    @direction()
-
-  moving: (type=null) ->
-    if type?
-      (motion for motion in @motions when motion.type == type).length > 0
-    else
-      @motions.length > 0
-
-  direction: ->
-    direction = [0.0, 0.0]
-    for motion in @motions
-      direction = $v.add(direction, [motion.x, motion.y])
-
-    direction
+    # convert our changes to our temporary rect into a new movement vector
+    $v.subtract(rect.topleft, @worldRect.topleft)
 
   clearXMomentum: ->
-    # filter all @motions where item[0] != 0.0
-    @motions = (motion for motion in @motions when motion.x != 0.0)
+    @direction[0] = 0.0
 
   clearYMomentum: ->
-    # filter all @motions where item[1] != 0.0
-    @motions = (motion for motion in @motions when motion.y != 0.0)
-    @landed = true
+    @direction[1] = 0.0
 
   update: (msDuration) ->
-    direction = @applyMotions(msDuration)
+    movement = $v.multiply(@direction, msDuration)
+    movement = @handleCollisions(movement)
+    @worldRect.moveIp(movement)
 
-    movement = $v.multiply(direction, msDuration)
-    @handleCollision(movement)
+    # TODO decrease direction vector based on movement
+    @direction[0] = threshold(@direction[0] / 2.0, @baseSpeed)
+    @direction[1] = threshold(@direction[1] / 2.0, @baseSpeed)
 
-    # apply gravity by adding gravity vector to @motions
-    if (motion for motion in @motions when motion.type == 'gravity').length == 0
-      @addMotion(0.0, @gravitySpeed, time = 1000000000, type = 'gravity')
 
-  addMotion: (x, y, time = 200, type = 'default') ->
-    @motions[@motions.length] = x: x, y: y, time: time, type: type
+    # clean up the coordinates
+    @worldRect.top = (0.5 + @worldRect.top) | 0
+    @worldRect.left = (0.5 + @worldRect.left) | 0
+
+    # apply gravity
+    @addMotion(0.0, @gravitySpeed)
+
+  addMotion: (x, y) ->
+    x += @direction[0]
+
+    if x > -@baseSpeed and x < 0
+      x = -@baseSpeed
+    else if x < @baseSpeed and x > 0
+      x = @baseSpeed
+    else if x < -@maxSpeed
+      x = -@maxSpeed
+    else if x > @maxSpeed
+      x = @maxSpeed
+
+    y += @direction[1]
+
+    @direction = [x, Math.min(@maxGravitySpeed, y)]
 
 
 exports.NPCharacter = class NPCharacter extends Character
@@ -148,10 +134,10 @@ exports.NPCharacter = class NPCharacter extends Character
     # if we stopped (because of collision) or if we have walked far enough
     if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > @behavior.distance
       # clear existing pacing motions
-      @motions = (motion for motion in @motions when motion.type != 'pacing')
+      @clearXMomentum()
       @paceDirection *= -1.0  # switch direction
 
-    @addMotion(@paceDirection * @speed, 0.0, 1, type='pacing')
+    @addMotion(@paceDirection * @baseSpeed, 0.0)
     @lastPace = @position[0]
  
   follow: ->
@@ -161,7 +147,7 @@ exports.NPCharacter = class NPCharacter extends Character
       if @behavior.target == 'player'
         @followTarget = @scene.player
 
-    if not @moving('following')
+    if @direction[0] == 0.0
       if @followTarget.position[0] < @position[0] - closeEnough
         direction = [-1, 0]
       else if @followTarget.position[0] > @position[0] + closeEnough
@@ -171,7 +157,7 @@ exports.NPCharacter = class NPCharacter extends Character
       
       # TODO follow up stairs and such
 
-      @addMotion(direction[0] * @speed, direction[1] * @jumpSpeed, 100, type='following')
+      @addMotion(direction[0] * @baseSpeed, direction[1] * @jumpSpeed)
 
   update: (msDuration) ->
     super(msDuration)
@@ -190,15 +176,15 @@ exports.Player = class Player extends Character
     @scene.center(@position)
 
   left: ->
-    @addMotion(-@speed, 0.0)
+    @addMotion(-@speedIncrement, 0.0)
     @
 
   right: ->
-    @addMotion(@speed, 0.0)
+    @addMotion(@speedIncrement, 0.0)
     @
 
   jump: ->
     if @landed
       @landed = false
-      @addMotion(0.0, @jumpSpeed, 100)
+      @addMotion(0.0, @jumpSpeed)
     @
