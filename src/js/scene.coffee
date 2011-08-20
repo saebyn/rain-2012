@@ -1,5 +1,6 @@
 
 gamejs = require 'gamejs'
+pathfinding = require 'pathfinding'
 
 exports.Scene = class Scene
   # viewportRect is in screen coordinates.
@@ -9,6 +10,10 @@ exports.Scene = class Scene
 
   setPlayer: (@player) ->
     @characters.add(@player)
+
+  getPathfindingMap: (character) ->
+    # character capabilities and location of solids needs to be passed in
+    new pathfinding.Map(character, this)
 
   center: (worldPosition) ->
     @viewportRect.center = worldPosition

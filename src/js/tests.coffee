@@ -1,6 +1,7 @@
-require.ensure ['entity', 'scene', 'gamejs'], (require) ->
+require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
   entity = require 'entity'
   scene = require 'scene'
+  pathfinding = require 'pathfinding'
   gamejs = require 'gamejs'
 
   describe 'entity', ->
@@ -94,6 +95,17 @@ require.ensure ['entity', 'scene', 'gamejs'], (require) ->
       @scene.center(@char.worldRect.center)
       expect(@leftWall.rect.left).not.toEqual(oldLeftWallX)
 
+  describe 'pathfinding', ->
+    beforeEach ->
+      @scene = new scene.Scene(100, 100, new gamejs.Rect(50, 50, 50, 50))
+      @char = new entity.Player(@scene, new gamejs.Rect(25, 30, 10, 10))
+      @leftWall = new entity.Entity(@scene, new gamejs.Rect(0, 0, 10, 40))
+      @floor = new entity.Entity(@scene, new gamejs.Rect(0, 40, 40, 10))
+      @map = @scene.getPathfindingMap(@char)
+
+    it 'should compute an estimated distance as a lower bound for the actual distance', ->
+      destination = [90, 30]
+      expect(@map.estimatedDistance(@char.position, destination)).not.toBeGreaterThan(@map.actualDistance(@char.position, destination))
 
   jasmine.getEnv().addReporter(new jasmine.TrivialReporter())
   jasmine.getEnv().execute()
