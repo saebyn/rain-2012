@@ -13,19 +13,19 @@
   },
   npcs: {
     'test1': {x: 180, y: 148, width: 64, height: 128, color: "#00ff00",
-              behavior: {
-                type: 'pacing',
-                distance: 100.0
-              }},
+              behavior: ['start',
+                {start: {start: 'pacing'},
+                 pacing: {continue: 'pacing'}},
+                {pacing: {inTransition: ['pace', 100.0]}}]},
     'test2': {x: 1500, y: 148, width: 64, height: 128, color: "#00faf0",
-              behavior: {
-                type: 'pacing',
-                distance: 1300.0
-              }},
+              behavior: ['start',
+                {start: {start: 'pacing'},
+                 pacing: {continue: 'pacing'}},
+                {pacing: {inTransition: ['pace', 1300.0]}}]},
     'test3': {x: 900, y: 148, width: 64, height: 128, color: "#0ff0ff",
-              behavior: {
-                type: 'following',
-                target: 'player'
-              }}
+              behavior: ['start',
+                {start: {start: 'following'},
+                 following: {continue: 'following'}},
+                {following: {inTransition: ['follow', 'player']}}]},
   }
 }

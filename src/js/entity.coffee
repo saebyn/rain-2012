@@ -1,6 +1,7 @@
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
+fsm = require 'fsm'
 
 
 threshold = (value, level, min = 0.0) ->
@@ -87,7 +88,7 @@ exports.Character = class Character extends Entity
     movement = @handleCollisions(movement)
     @worldRect.moveIp(movement)
 
-    # TODO decrease direction vector based on movement
+    # decrease direction vector based on movement
     @direction[0] = threshold(@direction[0] / 2.0, @baseSpeed)
     @direction[1] = threshold(@direction[1] / 2.0, @baseSpeed)
 
@@ -117,13 +118,22 @@ exports.Character = class Character extends Entity
 
 
 exports.NPCharacter = class NPCharacter extends Character
-  constructor: (scene, rect, @behavior) ->
+  constructor: (scene, rect, behavior) ->
     super(scene, rect)
+    @behavior = new fsm.FSM(behavior, @behaviorDispatch)
+    @behavior.input('start')
 
   startDialog: ->
-    @behavior.type = 'dialog'
+    @behavior.input('dialog')
 
-  pace: ->
+  update: (msDuration) ->
+    super(msDuration)
+    @behavior.update()
+
+  behaviorDispatch: (params) =>
+    this[params[0]](params[1..]...)
+
+  pace: (distance) ->
     # setup for when starting
     if not @paceDirection?
       @paceDirection = -1.0
@@ -132,19 +142,20 @@ exports.NPCharacter = class NPCharacter extends Character
       @lastPace = @paceCenter - @paceDirection
 
     # if we stopped (because of collision) or if we have walked far enough
-    if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > @behavior.distance
+    if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > distance
       # clear existing pacing motions
       @clearXMomentum()
       @paceDirection *= -1.0  # switch direction
 
     @addMotion(@paceDirection * @baseSpeed, 0.0)
     @lastPace = @position[0]
+    @behavior.input('continue')
  
-  follow: ->
-    closeEnough = 80.0
+  follow: (target, closeEnough=80) ->
+    @behavior.input('continue')
 
     if not @followTarget?
-      if @behavior.target == 'player'
+      if target == 'player'
         @followTarget = @scene.player
 
     if @direction[0] == 0.0
@@ -158,12 +169,6 @@ exports.NPCharacter = class NPCharacter extends Character
       # TODO follow up stairs and such
 
       @addMotion(direction[0] * @baseSpeed, direction[1] * @jumpSpeed)
-
-  update: (msDuration) ->
-    super(msDuration)
-    switch @behavior.type
-      when 'pacing' then @pace()
-      when 'following' then @follow()
 
 
 exports.Player = class Player extends Character

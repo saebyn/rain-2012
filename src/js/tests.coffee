@@ -1,6 +1,7 @@
 require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
   entity = require 'entity'
   scene = require 'scene'
+  fsm = require 'fsm'
   pathfinding = require 'pathfinding'
   gamejs = require 'gamejs'
 
@@ -106,6 +107,24 @@ require.ensure ['entity', 'scene', 'pathfinding', 'gamejs'], (require) ->
     it 'should compute an estimated distance as a lower bound for the actual distance', ->
       destination = [90, 30]
       expect(@map.estimatedDistance(@char.worldRect.topleft, destination)).not.toBeGreaterThan(@map.actualDistance(@char.worldRect.topleft, destination))
+
+  describe 'fsm', ->
+    it 'should stay at the same state when no input is given', ->
+      m = new fsm.FSM(['state1', {state1: 'state2'}, {}], null)
+      expect(m.state).toEqual('state1')
+      m.update()
+      expect(m.state).toEqual('state1')
+
+    it 'should update to the next state when the first input matches', ->
+      m = new fsm.FSM(['state1', {state1: {'input1': 'state2'}}, {}], null)
+      m.input('input1')
+      m.update()
+      expect(m.state).toEqual('state2')
+
+    it 'should not change states before update is called', ->
+      m = new fsm.FSM(['state1', {state1: {'input1': 'state2'}}, {}], null)
+      m.input('input1')
+      expect(m.state).toEqual('state1')
 
   jasmine.getEnv().addReporter(new jasmine.TrivialReporter())
   jasmine.getEnv().execute()
