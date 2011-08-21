@@ -1,4 +1,13 @@
 
+Level files can specify images for entities
+
+Level / asset loader
+
+Doors/portals that load new level files
+
+Items that can be picked up by clicking on them.
+
+
 Moving NPCs
 
   * Switch from one behavior to another based on world conditions/input
@@ -15,8 +24,4 @@ Moving NPCs
 
   * NPCs use pathfinding code to move
 
-
-Doors/portals that load new level files
-
-Items that can be picked up by clicking on them.
-
+Level files can specify spritesheet images / rect of spritesheet for entities.
