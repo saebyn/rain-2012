@@ -46,7 +46,8 @@
   %script{:src => "/js/lib/gamejs.js"}
   :javascript
     var $g = {
-      ajaxBaseHref: "/data/"
+      ajaxBaseHref: "/data/",
+      resourceBaseHref: "/assets/"
     };
     require.setModuleRoot('js');
     require.run('app');

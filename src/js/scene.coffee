@@ -22,19 +22,37 @@ exports.Scene = class Scene
     for name, spec of level.npcs
       rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
       sprite = new entity.NPCharacter(this, rect, spec.behavior)
-      sprite.image = new gamejs.Surface(rect)
-      sprite.image.fill(spec.color)
+      @loadSpriteSpec(sprite, spec)
       @characters.add(sprite)
 
     for name, spec of level.solids
       rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
       sprite = new entity.Entity(this, rect)
-      sprite.image = new gamejs.Surface(rect)
-      sprite.image.fill(spec.color)
+      @loadSpriteSpec(sprite, spec)
       @solids.add(sprite)
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
+
+  drawRepeat: (source, dest, repeatX, repeatY) ->
+    sourceSize = source.getSize()
+    for x in [0...repeatX]
+      for y in [0...repeatY]
+        dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
+
+  loadSpriteSpec: (sprite, spec) ->
+    if spec.image?
+      rawImage = gamejs.image.load(spec.image)
+      if spec.repeat? and spec.repeat != 'none'
+        sprite.image = new gamejs.Surface(sprite.rect)
+        imageSize = rawImage.getSize()
+        switch spec.repeat
+          when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
+      else
+        sprite.image = rawImage
+    else
+      sprite.image = new gamejs.Surface(sprite.rect)
+      sprite.image.fill(spec.color)
 
   leftClick: (point) ->
     # find character clicked on

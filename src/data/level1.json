@@ -2,7 +2,7 @@
   size: [3000, 400],
   playerStart: [50, 0],
   solids: {
-    'floor': {x: 0, y: 390, width: 3000, height: 10, color: "#0000ff"},
+    'floor': {x: 0, y: 390, width: 3000, height: 10, color: "#0000ff", image: "sprites/floor1.png", repeat: 'x'},
     'left_wall': {x: 0, y: 0, width: 10, height: 2990, color: "#0000aa"},
     'floating_block1': {x: 270, y: 375, width: 25, height: 15, color: "#000000"},
     'floating_block2': {x: 300, y: 360, width: 25, height: 15, color: "#000000"},
