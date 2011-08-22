@@ -21,3 +21,5 @@ Moving NPCs
   * NPCs use pathfinding code to move
 
 Level files can specify spritesheet images / rect of spritesheet for entities.
+
+Animated sprites
