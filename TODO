@@ -1,7 +1,5 @@
 
-Background sprite parallax
-
-World editor mode
+Doors/portals that load new level files
 
 Player inventory
 
@@ -11,7 +9,9 @@ Items that can be picked up by clicking on them.
 
   - Can be held by Character in inventory
 
-Doors/portals that load new level files
+World editor mode
+
+Background sprite parallax
 
 Moving NPCs
 
