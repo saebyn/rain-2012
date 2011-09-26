@@ -1,6 +1,14 @@
 {
   size: [3000, 400],
   playerStart: [50, 0],
+  backgrounds: {
+    'apt_building': {x: 500, y: -250, width: 230, height: 640,
+                     image: "sprites/aptbuilding.png", repeat: 'none',
+                     distance: 10},
+    'apt_building2': {x: 600, y: -250, width: 230, height: 640,
+                      image: "sprites/aptbuilding.png", repeat: 'none',
+                      distance: 50},
+  },
   solids: {
     'floor': {x: 0, y: 390, width: 3000, height: 10, color: "#0000ff", image: "sprites/floor1.png", repeat: 'x'},
     'left_wall': {x: 0, y: 0, width: 10, height: 2990, color: "#0000aa"},

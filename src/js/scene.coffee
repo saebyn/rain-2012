@@ -6,7 +6,15 @@ entity = require 'entity'
 exports.Scene = class Scene
   constructor: (@director, level) ->
     @viewportRect = @director.getViewport()
+
+    # backgrounds are non-interactive sprites
+    @backgrounds = new gamejs.sprite.Group()
+    # items are interactive sprites
+    # (either things to be picked up or activated)
+    @items = new gamejs.sprite.Group()
+    # solids are things you can't walk or fall through
     @solids = new gamejs.sprite.Group()
+    # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
     @worldWidth = level.size[0]
@@ -19,20 +27,24 @@ exports.Scene = class Scene
     @player.image.fill('#ff0000')
     @characters.add(@player)
 
-    for name, spec of level.npcs
-      rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
-      sprite = new entity.NPCharacter(this, rect, spec.behavior)
-      @loadSpriteSpec(sprite, spec)
-      @characters.add(sprite)
+    @loadEntities(level.npcs, @characters, (name, spec, rect) =>
+      new entity.NPCharacter(this, rect, spec.behavior))
 
-    for name, spec of level.solids
-      rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
-      sprite = new entity.Entity(this, rect)
-      @loadSpriteSpec(sprite, spec)
-      @solids.add(sprite)
+    @loadEntities(level.solids, @solids, (name, spec, rect) =>
+      new entity.Entity(this, rect))
+
+    @loadEntities(level.backgrounds, @backgrounds, (name, spec, rect) =>
+      new entity.Entity(this, rect))
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
+
+  loadEntities: (specs, group, fn) ->
+    for name, spec of specs
+      rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
+      sprite = fn(name, spec, rect)
+      @loadSpriteSpec(sprite, spec)
+      group.add(sprite)
 
   drawRepeat: (source, dest, repeatX, repeatY) ->
     sourceSize = source.getSize()
@@ -48,6 +60,8 @@ exports.Scene = class Scene
         imageSize = rawImage.getSize()
         switch spec.repeat
           when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
+          when 'y' then @drawRepeat(rawImage, sprite.image, 1, sprite.rect.height / imageSize[1])
+          when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
       else
         sprite.image = rawImage
     else
@@ -86,6 +100,7 @@ exports.Scene = class Scene
 
   draw: (display) ->
     display.clear()
+    @backgrounds.draw(display)
     @solids.draw(display)
     @characters.draw(display)
 

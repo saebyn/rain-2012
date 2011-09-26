@@ -31,6 +31,9 @@ exports.Entity = class Entity extends gamejs.sprite.Sprite
     $o.accessor(this, 'position', positionGet, positionSet)
 
 
+# TODO background sprite Entity with parallax
+
+
 exports.Character = class Character extends Entity
   constructor: (scene, rect) ->
     super(scene, rect)
