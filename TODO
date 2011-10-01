@@ -1,4 +1,6 @@
 
+UI overlay on top of game area
+
 Items & Inventory
 -----------------
 
@@ -6,15 +8,17 @@ Items & Inventory
 
   - Subclass of Entity
 
-  - Can be held by Character in inventory
+  - Can be converted into inventory item
+
+  - Can be picked up by clicking on them.
 
 * Player inventory
 
-  - Inventory screen / scene
+  - Inventory items can be held by Character in inventory
 
-  - Shows items held by Character
+  - Inventory overlay in HTML&CSS
 
-* Items that can be picked up by clicking on them.
+  - Shows items held by player
 
 * Wieldable items.
 
@@ -31,6 +35,15 @@ Graphics
 Background sprite parallax
 
 Animated sprites
+
+Sound
+-----
+
+* Music tracks spec'ed at game start
+
+* Sounds spec'ed at game start
+
+* Music tracks named per level
 
 
 AI
@@ -59,3 +72,15 @@ Level files
 Level files can specify spritesheet images / rect of spritesheet for entities.
 
 YAML level files?
+
+
+Misc
+----
+
+* Save current level & position
+
+* Save player inventory
+
+* Laptop computer gives openable overlay (HTML&CSS)
+
+* Smartphone gives sidebar overlay (HTML&CSS)
