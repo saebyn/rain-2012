@@ -1,8 +1,4 @@
 
-Doors/portals that load new level files
-
-  - add door click event handling in scene class
-
 Player inventory
 
 Items that can be picked up by clicking on them.

@@ -41,8 +41,8 @@ exports.Loader = class Loader
 
   update: (msDuration) ->
      if @loaded
-       scene = new scene.Scene(@director, @level)
-       @director.replaceScene(scene)
+       newScene = new scene.Scene(@director, @level)
+       @director.replaceScene(newScene)
 
   draw: (display) ->
     # draw progress

@@ -2,6 +2,7 @@
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
 entity = require 'entity'
+loader = require 'loader'
 
 exports.Scene = class Scene
   constructor: (@director, level) ->
@@ -9,11 +10,17 @@ exports.Scene = class Scene
 
     # backgrounds are non-interactive sprites
     @backgrounds = new gamejs.sprite.Group()
+
+    # doors that when clicked load a different level file
+    @portals = new gamejs.sprite.Group()
+
     # items are interactive sprites
     # (either things to be picked up or activated)
     @items = new gamejs.sprite.Group()
+
     # solids are things you can't walk or fall through
     @solids = new gamejs.sprite.Group()
+
     # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
@@ -35,6 +42,9 @@ exports.Scene = class Scene
 
     @loadEntities(level.backgrounds, @backgrounds, (name, spec, rect) =>
       new entity.Entity(this, rect))
+
+    @loadEntities(level.portals, @portals, (name, spec, rect) =>
+      new entity.Portal(this, rect, spec.destination))
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
@@ -64,11 +74,17 @@ exports.Scene = class Scene
           when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
       else
         sprite.image = rawImage
-    else
+    else if spec.color
       sprite.image = new gamejs.Surface(sprite.rect)
       sprite.image.fill(spec.color)
 
   leftClick: (point) ->
+    # find any portals clicked on
+    portalsClicked = @portals.collidePoint(point)
+    if portalsClicked.length > 0
+      @loadPortal(portalsClicked[0])
+      return
+
     # find character clicked on
     charactersClicked = @characters.collidePoint(point)
     # launch dialog subsys for first clicked NPC
@@ -126,3 +142,7 @@ exports.Scene = class Scene
   toScreenRect: (rect) ->
     # convert world coordinates to screen coordinates
     rect.move(-@viewportRect.left, -@viewportRect.top)
+
+  loadPortal: (portal) ->
+    scene = new loader.Loader(@director, portal.destination)
+    @director.replaceScene(scene)
