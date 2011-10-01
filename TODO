@@ -1,12 +1,15 @@
 
-Level files can specify images for entities
-
-Level / asset loader
-
-Doors/portals that load new level files
+Player inventory
 
 Items that can be picked up by clicking on them.
 
+  - Subclass of Entity
+
+  - Can be held by Character in inventory
+
+World editor mode
+
+Background sprite parallax
 
 Moving NPCs
 
@@ -25,3 +28,9 @@ Moving NPCs
   * NPCs use pathfinding code to move
 
 Level files can specify spritesheet images / rect of spritesheet for entities.
+
+Animated sprites
+
+Wieldable items.
+
+YAML level files?

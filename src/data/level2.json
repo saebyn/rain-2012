@@ -3,7 +3,7 @@
   playerStart: [50, 0],
   portals: {
     'apt_building': {x: 580, y: 310, width: 50, height: 65,
-                     destination: "level2.json"}
+                     destination: "level1.json"}
   },
   backgrounds: {
     'apt_building': {x: 500, y: -250, width: 230, height: 640,
@@ -16,12 +16,6 @@
   solids: {
     'floor': {x: 0, y: 390, width: 3000, height: 10, color: "#0000ff", image: "sprites/floor1.png", repeat: 'x'},
     'left_wall': {x: 0, y: 0, width: 10, height: 2990, color: "#0000aa"},
-    'floating_block1': {x: 270, y: 375, width: 25, height: 15, color: "#000000"},
-    'floating_block2': {x: 300, y: 360, width: 25, height: 15, color: "#000000"},
-    'floating_block3': {x: 330, y: 345, width: 25, height: 15, color: "#000000"},
-    'floating_block4': {x: 360, y: 330, width: 25, height: 15, color: "#000000"},
-    'floating_block5': {x: 390, y: 315, width: 25, height: 15, color: "#000000"},
-    'floating_block6': {x: 420, y: 300, width: 25, height: 15, color: "#000000"}
   },
   npcs: {
     'test1': {x: 180, y: 148, width: 64, height: 128, color: "#00ff00",
