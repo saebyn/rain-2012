@@ -1,15 +1,40 @@
 
-Player inventory
+Items & Inventory
+-----------------
 
-Items that can be picked up by clicking on them.
+* Items
 
   - Subclass of Entity
 
   - Can be held by Character in inventory
 
+* Player inventory
+
+  - Inventory screen / scene
+
+  - Shows items held by Character
+
+* Items that can be picked up by clicking on them.
+
+* Wieldable items.
+
+
+Dev Tools
+---------
+
 World editor mode
 
+
+Graphics
+--------
+
 Background sprite parallax
+
+Animated sprites
+
+
+AI
+--
 
 Moving NPCs
 
@@ -27,10 +52,10 @@ Moving NPCs
 
   * NPCs use pathfinding code to move
 
+
+Level files
+-----------
+
 Level files can specify spritesheet images / rect of spritesheet for entities.
-
-Animated sprites
-
-Wieldable items.
 
 YAML level files?
