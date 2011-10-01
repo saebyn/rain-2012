@@ -1,6 +1,7 @@
 {
   size: [3000, 400],
   playerStart: [50, 0],
+  spritesheets: ['spritesheet_base.json'],
   portals: {
     'apt_building': {x: 580, y: 310, width: 50, height: 65,
                      destination: "level1.json"}
