@@ -31,7 +31,28 @@ exports.Entity = class Entity extends gamejs.sprite.Sprite
     $o.accessor(this, 'position', positionGet, positionSet)
 
 
-# TODO background sprite Entity with parallax
+exports.BackgroundSprite = class BackgroundSprite extends Entity
+  constructor: (scene, rect, @distance) ->
+    super(scene, rect)
+
+    rectGet = ->
+      newRect = @scene.toScreenRect(@worldRect)
+      if @distance == 0
+        return newRect
+      playerRect = @scene.player.rect
+      # get x distance from this rect to player
+      dx = newRect.x - playerRect.x
+      # calculate offset based on @distance
+      dx *= @distance / 500.0
+      # apply offset to rect
+      newRect.move(dx, 0)
+
+    rectSet = (rect) ->
+      @worldRect = @scene.toWorldRect(rect)
+      return
+
+    $o.accessor(this, 'rect', rectGet, rectSet)
+
 
 exports.Portal = class Portal extends Entity
   constructor: (scene, rect, @destination) ->

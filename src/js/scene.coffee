@@ -41,7 +41,7 @@ exports.Scene = class Scene
       new entity.Entity(this, rect))
 
     @loadEntities(level.backgrounds, @backgrounds, (name, spec, rect) =>
-      new entity.Entity(this, rect))
+      new entity.BackgroundSprite(this, rect, spec.distance))
 
     @loadEntities(level.portals, @portals, (name, spec, rect) =>
       new entity.Portal(this, rect, spec.destination))

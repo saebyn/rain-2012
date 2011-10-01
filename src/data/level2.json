@@ -8,7 +8,7 @@
   backgrounds: {
     'apt_building': {x: 500, y: -250, width: 230, height: 640,
                      image: "sprites/aptbuilding.png", repeat: 'none',
-                     distance: 10},
+                     distance: 0},
     'apt_building2': {x: 600, y: -250, width: 230, height: 640,
                       image: "sprites/aptbuilding.png", repeat: 'none',
                       distance: 50},
