@@ -7,6 +7,7 @@ loader = require 'loader'
 exports.Scene = class Scene
   constructor: (@director, @sceneLoader) ->
     @viewportRect = @director.getViewport()
+    @paused = false
 
     # backgrounds are non-interactive sprites
     @backgrounds = new gamejs.sprite.Group()
@@ -50,6 +51,10 @@ exports.Scene = class Scene
     @playerMove = ->
 
   leftClick: (point) ->
+    # no interactions while paused
+    if @paused
+      return
+
     # find any portals clicked on
     portalsClicked = @portals.collidePoint(point)
     if portalsClicked.length > 0
@@ -76,20 +81,39 @@ exports.Scene = class Scene
       when gamejs.event.KEY_UP then switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
+        when gamejs.event.K_p then @paused = true
+        when gamejs.event.K_ESC then @paused = false
 
   update: (msDuration) ->
     # just let it skip a bit if we got slowed down that much
     if msDuration > 100
       msDuration = 100
 
-    @playerMove()
-    @characters.update(msDuration)
+    if not @paused
+      @playerMove()
+      @characters.update(msDuration)
 
   draw: (display) ->
     display.clear()
     @backgrounds.draw(display)
     @solids.draw(display)
     @characters.draw(display)
+
+    if @paused
+      font = new gamejs.font.Font('36px monospace')
+      textSurface = font.render("Paused...")
+      font = new gamejs.font.Font('24px monospace')
+      subtextSurface = font.render("(press ESC to resume)")
+
+      textRect = new gamejs.Rect([0, 0], textSurface.getSize())
+      screenCenterX = display.getSize()[0] / 2
+      screenCenterY = display.getSize()[1] / 2
+      textRect.center = [screenCenterX, screenCenterY]
+      display.blit(textSurface, textRect)
+
+      subtextRect = new gamejs.Rect([0, 0], subtextSurface.getSize())
+      subtextRect.center = [screenCenterX, screenCenterY + textRect.height + 10]
+      display.blit(subtextSurface, subtextRect)
 
   getPathfindingMap: (character) ->
     # character capabilities and location of solids needs to be passed in
