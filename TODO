@@ -1,6 +1,4 @@
 
-UI overlay on top of game area
-
 Items & Inventory
 -----------------
 
@@ -70,11 +68,7 @@ Moving NPCs
 Level files
 -----------
 
-* Level files can specify spritesheet images / rect of spritesheet for entities.
-
-  - Scene takes a Loader instance instead of the interpreted json level file.
-
-  - All level file processing takes place in the Loader class
+* Level files and/or spritesheet files support key frame animations
 
 
 Misc
