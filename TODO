@@ -34,7 +34,9 @@ World editor mode
 Graphics
 --------
 
-Animated sprites
+* Animated sprites
+
+  - Create a animated surface subclass that will automatically play default or specified animation, loaded by Loader
 
 
 Sound
@@ -70,9 +72,11 @@ Moving NPCs
 Level files
 -----------
 
-Level files can specify spritesheet images / rect of spritesheet for entities.
+* Level files can specify spritesheet images / rect of spritesheet for entities.
 
-YAML level files?
+  - Scene takes a Loader instance instead of the interpreted json level file.
+
+  - All level file processing takes place in the Loader class
 
 
 Misc

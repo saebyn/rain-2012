@@ -583,7 +583,7 @@ Surface.prototype.blit = function(src, dest, area, special_flags) {
    if (area instanceof Rect) {
       rArea = area;
    } else if (area && area instanceof Array && area.length == 2) {
-      rArea = new Rect(area, src.getSize());
+      rArea = new Rect(area, src.getSize()); // TODO make unit test to break this when rArea.right > src.width
    } else {
       rArea = new Rect([0,0], src.getSize());
    }
@@ -597,7 +597,6 @@ Surface.prototype.blit = function(src, dest, area, special_flags) {
    var m = matrix.translate(matrix.identity(), rDest.left, rDest.top);
    m = matrix.multiply(m, src._matrix);
    this.context.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
-   var srcRect = src.getRect();
    // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
    this.context.globalAlpha = src._blitAlpha;
    this.context.drawImage(src.canvas, rArea.left, rArea.top, rArea.width, rArea.height, 0, 0, rDest.width, rDest.height);

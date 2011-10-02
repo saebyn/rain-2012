@@ -5,7 +5,7 @@ entity = require 'entity'
 loader = require 'loader'
 
 exports.Scene = class Scene
-  constructor: (@director, level) ->
+  constructor: (@director, @sceneLoader) ->
     @viewportRect = @director.getViewport()
 
     # backgrounds are non-interactive sprites
@@ -24,59 +24,30 @@ exports.Scene = class Scene
     # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
-    @worldWidth = level.size[0]
-    @worldHeight = level.size[1]
+    @worldWidth = @sceneLoader.level.size[0]
+    @worldHeight = @sceneLoader.level.size[1]
 
     playerSize = [64, 128]
-    playerPosition = @toScreenRect(new gamejs.Rect(level.playerStart, playerSize))
+    playerPosition = @toScreenRect(new gamejs.Rect(@sceneLoader.level.playerStart, playerSize))
     @player = new entity.Player(this, playerPosition)
     @player.image = new gamejs.Surface(@player.rect)
     @player.image.fill('#ff0000')
     @characters.add(@player)
 
-    @loadEntities(level.npcs, @characters, (name, spec, rect) =>
+    @sceneLoader.loadEntities(@, 'npcs', @characters, (name, spec, rect) =>
       new entity.NPCharacter(this, rect, spec.behavior))
 
-    @loadEntities(level.solids, @solids, (name, spec, rect) =>
+    @sceneLoader.loadEntities(@, 'solids', @solids, (name, spec, rect) =>
       new entity.Entity(this, rect))
 
-    @loadEntities(level.backgrounds, @backgrounds, (name, spec, rect) =>
+    @sceneLoader.loadEntities(@, 'backgrounds', @backgrounds, (name, spec, rect) =>
       new entity.BackgroundSprite(this, rect, spec.distance))
 
-    @loadEntities(level.portals, @portals, (name, spec, rect) =>
+    @sceneLoader.loadEntities(@, 'portals', @portals, (name, spec, rect) =>
       new entity.Portal(this, rect, spec.destination))
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
-
-  loadEntities: (specs, group, fn) ->
-    for name, spec of specs
-      rect = @toScreenRect(new gamejs.Rect(spec.x, spec.y, spec.width, spec.height))
-      sprite = fn(name, spec, rect)
-      @loadSpriteSpec(sprite, spec)
-      group.add(sprite)
-
-  drawRepeat: (source, dest, repeatX, repeatY) ->
-    sourceSize = source.getSize()
-    for x in [0...repeatX]
-      for y in [0...repeatY]
-        dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
-
-  loadSpriteSpec: (sprite, spec) ->
-    if spec.image?
-      rawImage = gamejs.image.load(spec.image)
-      if spec.repeat? and spec.repeat != 'none'
-        sprite.image = new gamejs.Surface(sprite.rect)
-        imageSize = rawImage.getSize()
-        switch spec.repeat
-          when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
-          when 'y' then @drawRepeat(rawImage, sprite.image, 1, sprite.rect.height / imageSize[1])
-          when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
-      else
-        sprite.image = rawImage
-    else if spec.color
-      sprite.image = new gamejs.Surface(sprite.rect)
-      sprite.image.fill(spec.color)
 
   leftClick: (point) ->
     # find any portals clicked on
