@@ -34,7 +34,9 @@ World editor mode
 Graphics
 --------
 
-Animated sprites
+* Animated sprites
+
+  - Create a animated surface subclass that will automatically play default or specified animation, loaded by Loader
 
 
 Sound

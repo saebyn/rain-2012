@@ -1,5 +1,4 @@
 {
-  name: 'base',
   image: 'sprites/basesheet.png',
   sprites: {
     'spriteName': {x: 0, y: 0, width: 50, height: 50},
