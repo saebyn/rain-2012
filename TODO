@@ -1,4 +1,12 @@
 
+App Initialization
+------------------
+
+Check for canvas, et al, support via modernizr and report status
+
+Check for optional features (local storage, sound) and tell the app about them
+
+
 Items & Inventory
 -----------------
 
@@ -74,9 +82,55 @@ Level files
 Misc
 ----
 
-* Save current level & position
+* Add In-game Menu (Esc key)
 
-* Save player inventory
+  - Add 'Save and quit' option
+
+  - Add 'Save game' option
+
+  - Add 'Quit' option [back to start screen]
+
+  - Add 'Back to game' option [close menu]
+
+
+* Director event system
+
+  - Director objects provide an event bind/trigger system
+
+  - Director objects emit gamejs events, update and draw events to subscribed
+    (bound) callables
+
+  - Scene objects can bind their methods to Director events
+
+  - External code can trigger or bind to Director object events
+
+
+* Game startup menu screen
+
+  - Show options:
+  
+    - new game (and name game)
+    
+    - save game (if have local storage support)
+    
+    - load game (if any saved and have local storage support)
+
+
+* Game save & load
+
+  - Save current level & position
+
+  - Save player inventory
+
+  - Save npc positions & states
+
+  - Load last saved game, trigger level load, set position
+
+  - Load player inventory
+
+  - Name the save
+
+  - Choose a saved game to restore
 
 * Laptop computer gives openable overlay (HTML&CSS)
 
