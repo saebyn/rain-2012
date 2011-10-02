@@ -1,7 +1,6 @@
 {
   size: [3000, 400],
   playerStart: [50, 0],
-  spritesheets: {base: 'spritesheet_base.json'},
   portals: {
     'apt_building': {x: 580, y: 310, width: 50, height: 65,
                      destination: "level2.json"}
@@ -13,8 +12,6 @@
     'apt_building2': {x: 600, y: -250, width: 230, height: 640,
                       image: "sprites/aptbuilding.png", repeat: 'none',
                       distance: 50},
-    'test': {x: 1000, y: 300, width: 50, height: 50, sprite: "base.spriteName",
-             repeat: 'none'},
   },
   solids: {
     'floor': {x: 0, y: 390, width: 3000, height: 10, color: "#0000ff", image: "sprites/floor1.png", repeat: 'x'},
