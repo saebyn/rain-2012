@@ -1,7 +1,7 @@
 gamejs = require 'gamejs'
 
 
-class Director
+exports.Director = class Director
   constructor: (width, height) ->
     @viewport = new gamejs.Rect(0, 0, width, height)
     @display = gamejs.display.setMode([width, height])
