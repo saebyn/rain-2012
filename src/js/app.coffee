@@ -1,3 +1,4 @@
+gamejs = require 'gamejs'
 director = require 'director'
 loader = require 'loader'
 
