@@ -72,7 +72,7 @@ exports.EntityBuilder = class EntityBuilder
       sprite.image.fill(spec.color)
 
 
-exports.Entity = class Entity extends gamejs.sprite.Sprite
+class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
     @worldRect = @scene.toWorldRect(rect)
@@ -95,7 +95,7 @@ exports.Entity = class Entity extends gamejs.sprite.Sprite
     $o.accessor(this, 'position', positionGet, positionSet)
 
 
-exports.BackgroundSprite = class BackgroundSprite extends Entity
+class BackgroundSprite extends Entity
   constructor: (scene, rect, @distance) ->
     super(scene, rect)
 
@@ -118,12 +118,12 @@ exports.BackgroundSprite = class BackgroundSprite extends Entity
     $o.accessor(this, 'rect', rectGet, rectSet)
 
 
-exports.Portal = class Portal extends Entity
+class Portal extends Entity
   constructor: (scene, rect, @destination) ->
     super(scene, rect)
 
 
-exports.Character = class Character extends Entity
+class Character extends Entity
   constructor: (scene, rect) ->
     super(scene, rect)
     @direction = [0.0, 0.0]  # our current movement vector
@@ -209,7 +209,7 @@ exports.Character = class Character extends Entity
     @direction = [x, Math.min(@maxGravitySpeed, y)]
 
 
-exports.NPCharacter = class NPCharacter extends Character
+class NPCharacter extends Character
   constructor: (scene, rect, behavior) ->
     super(scene, rect)
     @behavior = new fsm.FSM(behavior, @behaviorDispatch)
