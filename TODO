@@ -106,8 +106,6 @@ Misc
 
 * Director event system
 
-  - Director objects provide an event bind/trigger system
-
   - Director objects emit gamejs events, update and draw events to subscribed
     (bound) callables
 
