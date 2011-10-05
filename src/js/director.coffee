@@ -1,7 +1,8 @@
 gamejs = require 'gamejs'
+event = require 'event'
 
 
-exports.Director = class Director
+exports.Director = class Director extends event.Event
   constructor: (width, height) ->
     @viewport = new gamejs.Rect(0, 0, width, height)
     @display = gamejs.display.setMode([width, height])
