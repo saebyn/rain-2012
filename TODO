@@ -111,9 +111,6 @@ Misc
 
   - Add 'Back to game' option [close menu]
 
-* Abstract methods for all scenes (including loaders) needed by Director class
-  into generic Scene class. Rename existing Scene class to something else... what?
-
 * Game startup menu screen
 
   - Show options:
