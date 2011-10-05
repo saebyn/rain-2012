@@ -4,8 +4,9 @@ pathfinding = require 'pathfinding'
 entity = require 'entity'
 loader = require 'loader'
 
+
 exports.Scene = class Scene
-  constructor: (@director, @sceneLoader) ->
+  constructor: (@director, worldSize, playerStart) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -25,30 +26,26 @@ exports.Scene = class Scene
     # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
-    @worldWidth = @sceneLoader.level.size[0]
-    @worldHeight = @sceneLoader.level.size[1]
+    @worldWidth = worldSize[0]
+    @worldHeight = worldSize[1]
 
     playerSize = [64, 128]
-    playerPosition = @toScreenRect(new gamejs.Rect(@sceneLoader.level.playerStart, playerSize))
-    @player = new entity.Player(this, playerPosition)
+    @player = new entity.Player(this, @toScreenRect(new gamejs.Rect(playerStart, playerSize)))
     @player.image = new gamejs.Surface(@player.rect)
     @player.image.fill('#ff0000')
     @characters.add(@player)
 
-    @sceneLoader.loadEntities(@, 'npcs', @characters, (name, spec, rect) =>
-      new entity.NPCharacter(this, rect, spec.behavior))
-
-    @sceneLoader.loadEntities(@, 'solids', @solids, (name, spec, rect) =>
-      new entity.Entity(this, rect))
-
-    @sceneLoader.loadEntities(@, 'backgrounds', @backgrounds, (name, spec, rect) =>
-      new entity.BackgroundSprite(this, rect, spec.distance))
-
-    @sceneLoader.loadEntities(@, 'portals', @portals, (name, spec, rect) =>
-      new entity.Portal(this, rect, spec.destination))
-
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
+
+  getEntityBuilder: (entityType, spritesheets) ->
+    group = switch entityType
+      when 'npcs' then @characters
+      when 'solids' then @solids
+      when 'backgrounds' then @backgrounds
+      when 'portals' then @portals
+
+    return new entity.EntityBuilder(@, group, entityType, spritesheets)
 
   start: ->
     @director.bind 'update', (msDuration) =>
@@ -110,6 +107,7 @@ exports.Scene = class Scene
     display.clear()
     @backgrounds.draw(display)
     @solids.draw(display)
+    @items.draw(display)
     @characters.draw(display)
 
     if @paused
@@ -152,5 +150,5 @@ exports.Scene = class Scene
     rect.move(-@viewportRect.left, -@viewportRect.top)
 
   loadPortal: (portal) ->
-    scene = new loader.Loader(@director, portal.destination)
-    @director.replaceScene(scene)
+    newScene = new loader.Loader(@director, portal.destination)
+    @director.replaceScene(newScene)

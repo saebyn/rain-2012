@@ -8,6 +8,70 @@ threshold = (value, level, min = 0.0) ->
   if Math.abs(value) < level then min else value
 
 
+exports.EntityBuilder = class EntityBuilder
+  constructor: (@scene, @group, @type, @spritesheets) ->
+
+  newEntity: (parameters={}) ->
+    rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
+    behavior = parameters.behavior or []
+    distance = parameters.distance or 0
+    destination = parameters.destination or ''
+
+    entity = switch @type
+      when 'npcs' then new NPCharacter(@scene, rect, behavior)
+      when 'solids' then new Entity(@scene, rect)
+      when 'backgrounds' then new BackgroundSprite(@scene, rect, distance)
+      when 'portals' then new Portal(@scene, rect, destination)
+
+    @loadSpriteSpec(entity, parameters)
+    @group.add(entity)
+    entity
+
+  drawRepeat: (source, dest, repeatX, repeatY) ->
+    sourceSize = source.getSize()
+    for x in [0...repeatX]
+      for y in [0...repeatY]
+        dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
+
+  applyImageSpec: (sprite, rawImage, spec) ->
+      if spec.repeat? and spec.repeat != 'none'
+        sprite.image = new gamejs.Surface(sprite.rect)
+        imageSize = rawImage.getSize()
+        switch spec.repeat
+          when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
+          when 'y' then @drawRepeat(rawImage, sprite.image, 1, sprite.rect.height / imageSize[1])
+          when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
+      else
+        sprite.image = rawImage
+
+  loadSpriteFromSheet: (name, rect) ->
+    [spritesheetName, spriteName] = name.split('.')
+    image = new gamejs.Surface(rect)
+
+    # load the spritesheet image
+    sheetImage = gamejs.image.load(@spritesheets[spritesheetName].image)
+
+    spriteDef = @spritesheets[spritesheetName].sprites[spriteName]
+    # PROBLEM: FIXME the source area of the spritesheet isn't dealt with correctly by gamejs
+    srcArea = new gamejs.Rect([spriteDef.x, spriteDef.y],
+                              [spriteDef.width, spriteDef.height])
+
+    # extract the specific sprite from the sheet
+    image.blit(sheetImage, [0, 0], srcArea)
+    image
+
+  loadSpriteSpec: (sprite, spec) ->
+    if spec.image?
+      rawImage = gamejs.image.load(spec.image)
+      @applyImageSpec(sprite, rawImage, spec)
+    else if spec.sprite?
+      rawImage = @loadSpriteFromSheet(spec.sprite, sprite.rect)
+      @applyImageSpec(sprite, rawImage, spec)
+    else if spec.color?
+      sprite.image = new gamejs.Surface(sprite.rect)
+      sprite.image.fill(spec.color)
+
+
 exports.Entity = class Entity extends gamejs.sprite.Sprite
   constructor: (@scene, rect) ->
     super()
