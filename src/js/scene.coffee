@@ -74,6 +74,8 @@ exports.Scene = class Scene
         when gamejs.event.K_p then @paused = true
         when gamejs.event.K_ESC then @paused = false
 
+  stop: ->
+
 
   leftClick: (point) ->
     # no interactions while paused

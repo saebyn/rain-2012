@@ -31,6 +31,7 @@ exports.Director = class Director extends event.Event
   replaceScene: (scene) ->
     # remove all existing event bindings
     if @activeScene
+      @activeScene.stop()
       @unbind()
 
     @activeScene = scene

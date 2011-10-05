@@ -27,6 +27,16 @@ Items & Inventory
 
   - Can be picked up by clicking on them.
 
+  - Can have js code to handle events like:
+  
+    - load (when level is loaded)
+    
+    - view (when item comes into the player's view)
+
+    - hide (when item leaves the player's view)
+
+    - unload (when the level is unloaded)
+
 * Player inventory
 
   - Inventory items can be held by Character in inventory
@@ -101,6 +111,8 @@ Misc
 
   - Add 'Back to game' option [close menu]
 
+* Abstract methods for all scenes (including loaders) needed by Director class
+  into generic Scene class. Rename existing Scene class to something else... what?
 
 * Game startup menu screen
 
