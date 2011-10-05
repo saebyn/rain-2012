@@ -104,23 +104,6 @@ Misc
   - Add 'Back to game' option [close menu]
 
 
-* Director event system
-
-  - Director objects emit gamejs events, update and draw events to subscribed
-    (bound) callables
-
-  - Scene objects (and others) can bind their methods to Director events
-
-  - Bound callables are called in most-recent order
-
-  - Event callbacks can cancel the event by returning false (and only false,
-    not undefined, etc)
-
-    - This allows for modal dialogs, etc.
-
-  - External code can trigger or bind to Director object events
-
-
 * Game startup menu screen
 
   - Show options:

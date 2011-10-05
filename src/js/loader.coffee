@@ -13,6 +13,13 @@ exports.Loader = class Loader
     @getLoadProgress = @load(@extractResources())
     @loaded = false
 
+  start: ->
+    @director.bind 'update', (msDuration) =>
+      @update(msDuration)
+
+    @director.bind 'draw', (display) =>
+      @draw(display)
+
   # extract the relative urls to the resources in @level
   extractResources: ->
     resources = []

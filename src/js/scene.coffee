@@ -50,6 +50,31 @@ exports.Scene = class Scene
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
 
+  start: ->
+    @director.bind 'update', (msDuration) =>
+      @update(msDuration)
+
+    @director.bind 'draw', (display) =>
+      @draw(display)
+
+    @director.bind 'mousedown', (event) =>
+      switch event.button
+        when 0 then @leftClick(event.pos)
+
+    @director.bind 'keydown', (event) =>
+      switch event.key
+        when gamejs.event.K_a then @playerMove = -> @player.left()
+        when gamejs.event.K_d then @playerMove = -> @player.right()
+        when gamejs.event.K_SPACE then @player.jump()
+
+    @director.bind 'keyup', (event) =>
+      switch event.key
+        when gamejs.event.K_a then @playerMove = ->
+        when gamejs.event.K_d then @playerMove = ->
+        when gamejs.event.K_p then @paused = true
+        when gamejs.event.K_ESC then @paused = false
+
+
   leftClick: (point) ->
     # no interactions while paused
     if @paused
@@ -70,20 +95,6 @@ exports.Scene = class Scene
         # TODO start dialog overlay
         break
  
-  handleEvent: (event) =>
-    switch event.type
-      when gamejs.event.MOUSE_DOWN then switch event.button
-        when 0 then @leftClick(event.pos)
-      when gamejs.event.KEY_DOWN then switch event.key
-        when gamejs.event.K_a then @playerMove = -> @player.left()
-        when gamejs.event.K_d then @playerMove = -> @player.right()
-        when gamejs.event.K_SPACE then @player.jump()
-      when gamejs.event.KEY_UP then switch event.key
-        when gamejs.event.K_a then @playerMove = ->
-        when gamejs.event.K_d then @playerMove = ->
-        when gamejs.event.K_p then @paused = true
-        when gamejs.event.K_ESC then @paused = false
-
   update: (msDuration) ->
     # just let it skip a bit if we got slowed down that much
     if msDuration > 100
