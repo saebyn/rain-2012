@@ -41,4 +41,4 @@ exports.Director = class Director extends event.Event
     @activeScene
 
   getViewport: ->
-    @viewport
+    @viewport.clone()

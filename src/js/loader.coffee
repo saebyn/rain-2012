@@ -7,18 +7,20 @@ scene = require 'scene'
 # director to it.
 
 exports.Loader = class Loader
-  constructor: (@director, @levelFilename) ->
+  constructor: (@director, levelFilename) ->
     @spritesheets = {}
-    @level = gamejs.http.load(@levelFilename)
-    @getLoadProgress = @load(@extractResources())
+    @level = gamejs.http.load(levelFilename)
     @loaded = false
 
   start: ->
+    @getLoadProgress = @load(@extractResources())
     @director.bind 'update', (msDuration) =>
       @update(msDuration)
 
     @director.bind 'draw', (display) =>
       @draw(display)
+
+  stop: ->
 
   # extract the relative urls to the resources in @level
   extractResources: ->
