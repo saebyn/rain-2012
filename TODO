@@ -1,8 +1,6 @@
 
 Intended next steps:
 
-* Game pause screen & menu
-
 * Dialog class
 
 * NPC Dialog
@@ -109,7 +107,6 @@ Misc
 
   - Add 'Quit' option [back to start screen]
 
-  - Add 'Back to game' option [close menu]
 
 * Game startup menu screen
 
