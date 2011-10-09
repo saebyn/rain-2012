@@ -1,5 +1,7 @@
 
 
+# TODO rewrite this to use menu class
+
 # TODO find positioning for dialog (ideally above npc, else centered on screen)
 # TODO bind mouse click event and connect it to dialog options (and close
 #      button)
