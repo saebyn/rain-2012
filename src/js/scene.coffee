@@ -10,7 +10,7 @@ exports.Scene = class Scene
   constructor: (@director, worldSize, playerStart) ->
     @viewportRect = @director.getViewport()
     @paused = false
-    @pauseMenu = new menu.Menu(@director, 'Paused', {resume: 'Back to Game'})
+    @pauseMenu = new menu.Menu(@director, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'})
 
     # backgrounds are non-interactive sprites
     @backgrounds = new gamejs.sprite.Group()
@@ -114,7 +114,7 @@ exports.Scene = class Scene
     @characters.draw(display)
 
     if @paused
-      # TODO partial-alpha overlay
+      display.fill('rgba(0, 0, 0, 0.7)')
       @pauseMenu.draw(display)
 
   getPathfindingMap: (character) ->
