@@ -3,12 +3,14 @@ gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
 entity = require 'entity'
 loader = require 'loader'
+menu = require 'menu'
 
 
 exports.Scene = class Scene
   constructor: (@director, worldSize, playerStart) ->
     @viewportRect = @director.getViewport()
     @paused = false
+    @pauseMenu = new menu.Menu(@director, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'})
 
     # backgrounds are non-interactive sprites
     @backgrounds = new gamejs.sprite.Group()
@@ -51,6 +53,9 @@ exports.Scene = class Scene
     @director.bind 'update', (msDuration) =>
       @update(msDuration)
 
+    @director.bind 'resume', =>
+      @paused = false
+
     @director.bind 'draw', (display) =>
       @draw(display)
 
@@ -68,15 +73,13 @@ exports.Scene = class Scene
       switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
-        when gamejs.event.K_p then @paused = true
-        when gamejs.event.K_ESC then @paused = false
+        when gamejs.event.K_ESC then @paused = true
 
   stop: ->
 
-
   leftClick: (point) ->
-    # no interactions while paused
     if @paused
+      @pauseMenu.click(point)
       return
 
     # find any portals clicked on
@@ -111,20 +114,8 @@ exports.Scene = class Scene
     @characters.draw(display)
 
     if @paused
-      font = new gamejs.font.Font('36px monospace')
-      textSurface = font.render("Paused...")
-      font = new gamejs.font.Font('24px monospace')
-      subtextSurface = font.render("(press ESC to resume)")
-
-      textRect = new gamejs.Rect([0, 0], textSurface.getSize())
-      screenCenterX = display.getSize()[0] / 2
-      screenCenterY = display.getSize()[1] / 2
-      textRect.center = [screenCenterX, screenCenterY]
-      display.blit(textSurface, textRect)
-
-      subtextRect = new gamejs.Rect([0, 0], subtextSurface.getSize())
-      subtextRect.center = [screenCenterX, screenCenterY + textRect.height + 10]
-      display.blit(subtextSurface, subtextRect)
+      display.fill('rgba(0, 0, 0, 0.7)')
+      @pauseMenu.draw(display)
 
   getPathfindingMap: (character) ->
     # character capabilities and location of solids needs to be passed in

@@ -5,8 +5,6 @@ Intended next steps:
 
 * NPC Dialog
 
-* Game pause screen & menu
-
 
 App Initialization
 ------------------
@@ -109,7 +107,6 @@ Misc
 
   - Add 'Quit' option [back to start screen]
 
-  - Add 'Back to game' option [close menu]
 
 * Game startup menu screen
 
