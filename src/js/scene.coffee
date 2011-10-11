@@ -10,7 +10,8 @@ exports.Scene = class Scene
   constructor: (@director, worldSize, playerStart) ->
     @viewportRect = @director.getViewport()
     @paused = false
-    @pauseMenu = new menu.Menu(@director, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'})
+
+    @modalDialogs = new gamejs.sprite.Group()
 
     # backgrounds are non-interactive sprites
     @backgrounds = new gamejs.sprite.Group()
@@ -39,6 +40,9 @@ exports.Scene = class Scene
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
+
+  getDirector: ->
+    @director
 
   getEntityBuilder: (entityType, spritesheets) ->
     group = switch entityType
@@ -73,13 +77,16 @@ exports.Scene = class Scene
       switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
-        when gamejs.event.K_ESC then @paused = true
+        when gamejs.event.K_ESC then @pause()
+
 
   stop: ->
 
   leftClick: (point) ->
-    if @paused
-      @pauseMenu.click(point)
+    # check for any modal dialogs in the modals group and click on the last one
+    if @modalDialogs.sprites().length > 0
+      sprites = @modalDialogs.sprites()
+      sprites[sprites.length-1].click(point)
       return
 
     # find any portals clicked on
@@ -93,10 +100,15 @@ exports.Scene = class Scene
     # launch dialog subsys for first clicked NPC
     for char in charactersClicked
       if not char.player
-        char.startDialog()  # tell NPC that we want to talk
-        # TODO start dialog overlay
+        dialogMenu = char.startDialog()  # tell NPC that we want to talk
+        # TODO add dialogMenu to overlay
         break
  
+  pause: ->
+    if not @paused
+      @modalDialogs.add(new menu.Menu(@director, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
+      @paused = true
+
   update: (msDuration) ->
     # just let it skip a bit if we got slowed down that much
     if msDuration > 100
@@ -113,9 +125,9 @@ exports.Scene = class Scene
     @items.draw(display)
     @characters.draw(display)
 
-    if @paused
+    if @modalDialogs.sprites().length > 0
       display.fill('rgba(0, 0, 0, 0.7)')
-      @pauseMenu.draw(display)
+      @modalDialogs.draw(display)
 
   getPathfindingMap: (character) ->
     # character capabilities and location of solids needs to be passed in

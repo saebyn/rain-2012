@@ -1,5 +1,7 @@
 gamejs = require 'gamejs'
 
+# TODO replace director usage with viewport rect and event manager
+
 exports.Menu = class Menu extends gamejs.sprite.Sprite
   constructor: (@director, title, options) ->
     super()
