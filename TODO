@@ -5,6 +5,10 @@ Intended next steps:
 
 * NPC Dialog
 
+* Basic inventory support
+
+* Detail combat TODO list
+
 
 App Initialization
 ------------------
@@ -44,6 +48,12 @@ Items & Inventory
   - Shows items held by player
 
 * Wieldable items.
+
+
+Combat
+------
+
+...
 
 
 Dev Tools
