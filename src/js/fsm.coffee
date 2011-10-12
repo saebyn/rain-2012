@@ -19,7 +19,7 @@ exports.FSM = class FSM
       false
 
   nextState: (token) ->
-    if token of @table[@state]
+    if @table[@state]? and token of @table[@state]
       next = @table[@state][token]
       [next, @getTransitionOut(@state), @getTransitionIn(next)]
     else

@@ -1,10 +1,9 @@
 gamejs = require 'gamejs'
 
-# TODO replace director usage with viewport rect and event manager
-
 exports.Menu = class Menu extends gamejs.sprite.Sprite
-  constructor: (@director, title, options) ->
+  constructor: (scene, title, options) ->
     super()
+    @director = scene.getDirector()
     @titleFont = new gamejs.font.Font('36px monospace')
     @buttonFont = new gamejs.font.Font('36px monospace')
     # create pause menu image, define button rects

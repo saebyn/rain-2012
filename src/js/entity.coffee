@@ -2,6 +2,7 @@ gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
 fsm = require 'fsm'
+menu = require 'menu'
 
 
 threshold = (value, level, min = 0.0) ->
@@ -93,6 +94,9 @@ class Entity extends gamejs.sprite.Sprite
 
     $o.accessor(this, 'rect', rectGet, rectSet)
     $o.accessor(this, 'position', positionGet, positionSet)
+
+  getScene: ->
+    @scene
 
 
 class BackgroundSprite extends Entity

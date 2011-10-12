@@ -101,12 +101,13 @@ exports.Scene = class Scene
     for char in charactersClicked
       if not char.player
         dialogMenu = char.startDialog()  # tell NPC that we want to talk
-        # TODO add dialogMenu to overlay
+        # add dialogMenu to overlay
+        @modalDialogs.add(dialogMenu)
         break
  
   pause: ->
     if not @paused
-      @modalDialogs.add(new menu.Menu(@director, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
+      @modalDialogs.add(new menu.Menu(@, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
       @paused = true
 
   update: (msDuration) ->
