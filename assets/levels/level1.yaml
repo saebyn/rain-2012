@@ -114,6 +114,7 @@ entities:
                         start: pacing
                     pacing:
                         continue: pacing
+                        dialog: talking
                 transitions:
                     pacing:
                         inTransition: ['pace', 100.0]
@@ -130,6 +131,7 @@ entities:
                         start: pacing
                     pacing:
                         continue: pacing
+                        dialog: talking
                 transitions:
                     pacing:
                         inTransition: ['pace', 1300.0]
@@ -146,6 +148,7 @@ entities:
                         start: following
                     following:
                         continue: following
+                        dialog: talking
                 transitions:
                     following:
                         inTransition: ['follow', 'player']
