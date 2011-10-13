@@ -103,11 +103,35 @@ Moving NPCs
 Level files
 -----------
 
+* Level files can include other level files (see below for alt idea)
+
+  - An entity with the same (internal key) name in both the including and
+    included level file will take the properties of the included file
+    first, then override them with the properties of the including file.
+
+  - Entities included can have their internal name changed during the include.
+
+  - Entities can all have an 'extends' property which copies and overrides the extended entity.
+
+  - Entities that are 'extended' from aren't part of the scene.
+
+* Compile level files from source files (YAML)
+
+  - alternative to above including/extending ideas
+
+  - has include and inheritance semantics built-in
+
+  - outputs JSON files usable with current level loader
+
+  - adds new local build step
+
 * Level files and/or spritesheet files support key frame animations
 
 
 Misc
 ----
+
+* Use fabric to build & deploy
 
 * Add In-game Menu (Esc key)
 

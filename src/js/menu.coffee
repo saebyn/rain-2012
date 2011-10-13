@@ -97,3 +97,11 @@ exports.Menu = class Menu extends gamejs.sprite.Sprite
     button = @findButton(point)
     if button
       @director.trigger(button)
+      @kill()
+
+
+# TODO find positioning for dialog (ideally above npc, else centered on screen)
+# TODO have events go to NPC rather than director
+exports.DialogMenu = class DialogMenu extends Menu
+  constructor: (@npc, text, options...) ->
+    super(@npc.getScene(), text, options)
