@@ -217,6 +217,12 @@ class NPCharacter extends Character
 
   startDialog: ->
     @behavior.input('dialog')
+    # construct and return dialog menu
+    # TODO extract dialog options from somewhere...
+    # maybe have dialogs stored in the scene? (as a separate entity type like portals, solids, etc)
+    #   needs: text, options={optionText: fsmInputToken, ...}
+    # maybe have NPC entities define the relationship between fsm states and dialog entries?
+    new menu.DialogMenu(@, 'What do you want?', ['...'])
 
   update: (msDuration) ->
     super(msDuration)
