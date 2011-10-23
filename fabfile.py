@@ -11,7 +11,7 @@ env.aws_secret_access_key = '3pr5Dq4lYWbji9LarUhEFgi+tHh5iJDa2EeuUE8V'
 
 def watch(delay='5'):
     while True:
-        local("inotifywait -r --exclude '^\..*\.swp$' --exclude '/.git/' -e modify -e move -e create -e delete .")
+        local("inotifywait -r --exclude '^\..*\.swp' -e modify -e move -e create -e delete src assets")
         print 'Rebuilding'
         local("fab build")
 
@@ -34,7 +34,8 @@ def build():
     local("cp -r src/crossdomain.xml %(build_dir)s/" % env)
 
     # build coffescript files
-    local("coffee -c -o %(build_dir)s/js src/js/*.coffee" % env)
+    with settings(warn_only=True):
+      local("coffee -c -o %(build_dir)s/js src/js/*.coffee" % env)
 
     # copy js libs
     local("cp -r src/js/lib %(build_dir)s/js/" % env)
