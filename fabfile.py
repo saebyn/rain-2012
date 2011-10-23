@@ -11,7 +11,7 @@ env.aws_secret_access_key = '3pr5Dq4lYWbji9LarUhEFgi+tHh5iJDa2EeuUE8V'
 
 def watch(delay='5'):
     while True:
-        local("inotifywait -r --exclude '^\..*\.swp$' --exclude '^.git/.*$' -e modify -e move -e create -e delete .")
+        local("inotifywait -r --exclude '^\..*\.swp$' --exclude '/.git/' -e modify -e move -e create -e delete .")
         print 'Rebuilding'
         local("fab build")
 
