@@ -33,6 +33,6 @@ exports.InventoryUI = class InventoryUI
     # TODO create root element, render templates, hook up events (both ways)
 
   destroy: ->
-    if @element?
+    #if @element?
       # TODO destroy element
       # TODO remove event hooks
