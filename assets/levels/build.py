@@ -17,6 +17,21 @@ def deep_update(d, u):
     return d
 
 
+def apply_includes(tree):
+    """
+    Find all included files and insert their contents into the tree.
+    """
+    includes = tree.get('includes', [])
+    if 'includes' in tree:
+        del tree['includes']
+
+    for fn in includes:
+        with open(fn) as fp:
+            deep_update(tree, apply_includes(yaml.load(fp)))
+
+    return tree
+
+
 def extract_parts(tree):
     """
     Remove the settings and entities from the tree.
@@ -181,17 +196,15 @@ def apply_settings(tree, settings):
 
 
 def convert(filename):
-    with file(filename, 'r') as f:
-        level = yaml.load(f)
-
-        settings, level = extract_parts(level)
-        level = apply_inheritance(level)
-        level = remove_abstract(level)
-        level = extract_details(level)
-        level = split_entities(level)
-        level = format_npc_behaviors(level)
-        level = apply_settings(level, settings)
-        print json.dumps(level)
+    level = apply_includes({'includes': [filename]})
+    settings, level = extract_parts(level)
+    level = apply_inheritance(level)
+    level = remove_abstract(level)
+    level = extract_details(level)
+    level = split_entities(level)
+    level = format_npc_behaviors(level)
+    level = apply_settings(level, settings)
+    print json.dumps(level)
 
 if __name__ == '__main__':
     import sys
