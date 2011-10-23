@@ -2,4 +2,7 @@
 *.bak
 *.swp
 build/
-config/amazon.yml
+*.pyc
+assets/models
+assets/samples
+assets/textures

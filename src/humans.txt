@@ -15,7 +15,7 @@
 
 /* SITE */
   Standards: HTML5, CSS3
-  Components: Modernizr, require.js, Jasmine, game.js
+  Components: Modernizr, require.js, game.js
   Software:
   
 
