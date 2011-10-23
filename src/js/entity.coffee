@@ -226,7 +226,9 @@ class NPCharacter extends Character
     # maybe have dialogs stored in the scene? (as a separate entity type like portals, solids, etc)
     #   needs: text, options={optionText: fsmInputToken, ...}
     # maybe have NPC entities define the relationship between fsm states and dialog entries?
-    new menu.DialogMenu(@, 'What do you want?', ['...'])
+    new menu.DialogMenu(@, @scene.getDirector().getViewport(), 'What do you want?', ['...'])
+
+  trigger: (event, args...) ->
 
   update: (msDuration) ->
     super(msDuration)
