@@ -105,11 +105,11 @@ Level files
 
 * Level files and/or spritesheet files support key frame animations
 
+* Level settings can optionally have player inventory, health, etc
+
 
 Misc
 ----
-
-* Use fabric to build & deploy
 
 * Add In-game Menu (Esc key)
 
