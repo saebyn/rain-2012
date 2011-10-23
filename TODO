@@ -103,12 +103,6 @@ Moving NPCs
 Level files
 -----------
 
-* Compile level files from source files (YAML)
-
-  - adds new local build step
-
-* Level files can include other level files
-
 * Level files and/or spritesheet files support key frame animations
 
 
