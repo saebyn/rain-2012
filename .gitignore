@@ -3,3 +3,6 @@
 *.swp
 build/
 config/amazon.yml
+assets/models
+assets/samples
+assets/textures
