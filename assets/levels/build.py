@@ -204,12 +204,12 @@ def convert(filename):
     level = split_entities(level)
     level = format_npc_behaviors(level)
     level = apply_settings(level, settings)
-    print json.dumps(level)
+    return json.dumps(level)
 
 if __name__ == '__main__':
     import sys
     if len(sys.argv) == 2:
-        convert(sys.argv[1])
+        print convert(sys.argv[1])
     else:
         import doctest
         doctest.testmod()

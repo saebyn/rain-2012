@@ -1,8 +1,10 @@
 *~
 *.bak
 *.swp
+*.pyc
 build/
 config/amazon.yml
+src/assets
 assets/models
 assets/samples
 assets/textures
