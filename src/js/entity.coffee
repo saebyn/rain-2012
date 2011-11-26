@@ -297,3 +297,7 @@ exports.Player = class Player extends Character
       @landed = false
       @addMotion(0.0, @jumpSpeed)
     @
+
+  updateInventory: ->
+    # TODO open inventory
+    @

@@ -78,6 +78,7 @@ exports.Scene = class Scene
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
         when gamejs.event.K_ESC then @pause()
+        when gamejs.event.K_i then @player.openInventory()
 
 
   stop: ->
