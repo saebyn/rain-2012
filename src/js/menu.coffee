@@ -1,9 +1,8 @@
 gamejs = require 'gamejs'
 
 exports.Menu = class Menu extends gamejs.sprite.Sprite
-  constructor: (scene, title, options) ->
+  constructor: (@eventSink, @viewport, title, options) ->
     super()
-    @director = scene.getDirector()
     @titleFont = new gamejs.font.Font('36px monospace')
     @buttonFont = new gamejs.font.Font('36px monospace')
     # create pause menu image, define button rects
@@ -14,7 +13,7 @@ exports.Menu = class Menu extends gamejs.sprite.Sprite
 
   positionMenu: (image) ->
     positionRect = new gamejs.Rect([0, 0], image.getSize())
-    positionRect.center = @director.getViewport().center
+    positionRect.center = @viewport.center
     return positionRect
 
   createButton: (name, text, x, y, padding) ->
@@ -97,12 +96,9 @@ exports.Menu = class Menu extends gamejs.sprite.Sprite
   click: (point) ->
     button = @findButton(point)
     if button
-      @director.trigger(button)
+      @eventSink.trigger(button)
       @kill()
 
 
 # TODO find positioning for dialog (ideally above npc, else centered on screen)
-# TODO have events go to NPC rather than director
 exports.DialogMenu = class DialogMenu extends Menu
-  constructor: (@npc, text, options...) ->
-    super(@npc.getScene(), text, options)

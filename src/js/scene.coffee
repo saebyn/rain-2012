@@ -107,7 +107,7 @@ exports.Scene = class Scene
  
   pause: ->
     if not @paused
-      @modalDialogs.add(new menu.Menu(@, 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
+      @modalDialogs.add(new menu.Menu(@director, @director.getViewport(), 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
       @paused = true
 
   update: (msDuration) ->
