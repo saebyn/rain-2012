@@ -523,10 +523,30 @@ var Surface = exports.Surface = function() {
 	/** @ignore */
 	this._blitAlpha = 1.0;
 
-	// disable gecko image scaling
-	// see https://developer.mozilla.org/en/Canvas_tutorial/Using_images#Controlling_image_scaling_behavior
-	// this.context.mozImageSmoothingEnabled = false;
+   /** @ignore */
+   this._context = this._canvas.getContext('2d')
+   this._smooth();
    return this;
+};
+
+/** @ignore */
+Surface.prototype._noSmooth = function() {
+	// disable image scaling
+	// see https://developer.mozilla.org/en/Canvas_tutorial/Using_images#Controlling_image_scaling_behavior
+	// and https://github.com/jbuck/processing-js/commit/65de16a8340c694cee471a2db7634733370b941c
+	this.context.mozImageSmoothingEnabled = false;
+   this.canvas.style.setProperty("image-rendering", "optimizeSpeed", "important");
+   this.canvas.style.setProperty("image-rendering", "-moz-crisp-edges", "important");
+   this.canvas.style.setProperty("image-rendering", "-webkit-optimize-contrast", "important");
+   this.canvas.style.setProperty("image-rendering", "optimize-contrast", "important");
+   this.canvas.style.setProperty("-ms-interpolation-mode", "nearest-neighbor", "important");
+   return;
+};
+
+Surface.prototype._smooth = function() {
+   this.canvas.style.setProperty("image-rendering", "optimizeQuality", "important");
+   this.canvas.style.setProperty("-ms-interpolation-mode", "bicubic", "important");
+   this.context.mozImageSmoothingEnabled = true;
 };
 
 /**
@@ -557,15 +577,14 @@ var Surface = exports.Surface = function() {
  * @param {gamesjs.Rect|Array} area the Area from the passed Surface which
  *            should be blitted onto this Surface.
  * @param {Number} [special_flags] FIXME add special flags for composite operations
- * @returns {gamejs.Rect} Rect actually repainted
+ * @returns {gamejs.Rect} Rect actually repainted FIXME actually return something?
  */
 Surface.prototype.blit = function(src, dest, area, special_flags) {
 
    var rDest, rArea;
 
-   // dest, we only care about x, y
    if (dest instanceof Rect) {
-      rDest = dest.clone(); // new gamejs.Rect([dest.left, dest.top], src.getSize());
+      rDest = dest.clone();
       var srcSize = src.getSize();
       if (!rDest.width) {
          rDest.width = srcSize[0];
@@ -583,7 +602,8 @@ Surface.prototype.blit = function(src, dest, area, special_flags) {
    if (area instanceof Rect) {
       rArea = area;
    } else if (area && area instanceof Array && area.length == 2) {
-      rArea = new Rect(area, src.getSize());
+      var size = src.getSize();
+      rArea = new Rect(area, [size[0] - area[0], size[1] - area[1]]);
    } else {
       rArea = new Rect([0,0], src.getSize());
    }
@@ -597,7 +617,6 @@ Surface.prototype.blit = function(src, dest, area, special_flags) {
    var m = matrix.translate(matrix.identity(), rDest.left, rDest.top);
    m = matrix.multiply(m, src._matrix);
    this.context.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
-   var srcRect = src.getRect();
    // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
    this.context.globalAlpha = src._blitAlpha;
    this.context.drawImage(src.canvas, rArea.left, rArea.top, rArea.width, rArea.height, 0, 0, rDest.width, rDest.height);
@@ -625,11 +644,15 @@ Surface.prototype.getRect = function() {
 /**
  * Fills the whole Surface with a color. Usefull for erasing a Surface.
  * @param {String} CSS color string, e.g. '#0d120a' or '#0f0' or 'rgba(255, 0, 0, 0.5)'
+ * @param {gamejs.Rect} a Rect of the area to fill (defauts to entire surface if not specified)
  */
-Surface.prototype.fill = function(color) {
+Surface.prototype.fill = function(color, rect) {
    this.context.save();
    this.context.fillStyle = color || "#000000";
-   this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+   if ( rect === undefined )
+       rect = new Rect(0, 0, this.canvas.width, this.canvas.height);
+
+   this.context.fillRect(rect.left, rect.top, rect.width, rect.height);
    this.context.restore();
    return;
 };
@@ -657,7 +680,7 @@ objects.accessors(Surface.prototype, {
     */
    'context': {
       get: function() {
-         return this._canvas.getContext('2d');
+         return this._context;
       }
    },
    'canvas': {
@@ -703,11 +726,11 @@ Surface.prototype.setAlpha = function(alpha) {
  * starting with the top left, with each pixel's red, green, blue, and alpha components
  * being given in that order for each pixel.
  * @see http://dev.w3.org/html5/2dcontext/#canvaspixelarray
- * @returns {Array} the pixel image data (the canvas pixel array in html speak)
+ * @returns {ImageData} an object holding the pixel image data {data, width, height}
  */
 Surface.prototype.getImageData = function() {
    var size = this.getSize();
-   return this.context.getImageData(0, 0, size[0], size[1]).data;
+   return this.context.getImageData(0, 0, size[0], size[1]);
 };
 
 /**
@@ -1519,13 +1542,28 @@ BinaryHeap.prototype.bubbleUp = function(idx) {
 require.define({
 "gamejs/utils/arrays": function(require, exports, module) {
 /**
- * @fileoverview Utility functions for working with Objects
- * @param {Object} item
+ * @fileoverview Utility functions for working with Obiects
+ * @param {Obiect} item
  * @param {Array} array
  */
 
 exports.remove = function(item, array) {
    return array.splice(array.indexOf(item), 1);
+};
+
+/**
+ * Shuffles the array *in place*.
+ * @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+ */
+exports.shuffle = function(array) {
+    var len = array.length -1;
+    for (i = len; i > 0; i--) {
+        var idx = parseInt(Math.random() * (i + 1));
+        var item = array[i];
+        array[i] = array[idx];
+        array[idx] = item;
+    }
+    return array;
 };
 
 }}, []);/* This file has been generated by yabbler.js */
@@ -1548,7 +1586,7 @@ var objects = require('./utils/objects');
  */
 exports.fromSurface = function(surface, threshold) {
    threshold = threshold && (255 - threshold) || 255;
-   var imgData = surface.getImageData();
+   var imgData = surface.getImageData().data;
    var dims = surface.getSize();
    var mask = new Mask(dims);
    for (var i=0;i<imgData.length;i += 4) {
@@ -1810,6 +1848,22 @@ var CACHE = {};
 var _PRELOADING = false;
 
 /**
+ * @ignore
+ */
+var NUM_CHANNELS = 8;
+
+/**
+ * Sets the number of available channels for the mixer. The default value is 8.
+ */
+exports.setNumChannels = function(count) {
+   NUM_CHANNELS = parseInt(count, 10) || NUM_CHANNELS;
+};
+
+exports.getNumChannels = function() {
+   return NUM_CHANNELS;
+};
+
+/**
  * put all audios on page in cache
  * if same domain as current page, remove common href-prefix
  * @ignore
@@ -1909,24 +1963,38 @@ exports.Sound = function Sound(uriOrAudio) {
       throw new Error('Missing "' + uriOrAudio + '", gamejs.preload() all audio files before loading');
    }
 
-   var audio = new Audio();
-   audio.preload = "auto";
-   audio.loop = false;
-   audio.src = cachedAudio.src;
+   var channels = [];
+   var i = NUM_CHANNELS;
+   while (i-->0) {
+      var audio = new Audio();
+      audio.preload = "auto";
+      audio.loop = false;
+      audio.src = cachedAudio.src;
+      channels.push(audio);
+   }
    /**
     * start the sound
+    * @param {Boolean} loop whether the audio should loop for ever or not
     */
-   this.play = function() {
-      if (audio.ended || audio.paused) {
-         audio.play();
-      }
+   this.play = function(loop) {
+      audio.loop = !!loop;
+      channels.some(function(audio) {
+         if (audio.ended || audio.paused) {
+            audio.play();
+            return true;
+         }
+         return false;
+      });
    };
 
    /**
-    * Stop the sound
+    * Stop the sound.
+    * This will stop the playback of this Sound on any active Channels.
     */
    this.stop = function() {
-      audio.pause();
+      channels.forEach(function(audio) {
+         audio.stop();
+      });
    };
 
    /**
@@ -1934,21 +2002,23 @@ exports.Sound = function Sound(uriOrAudio) {
     * @param {Number} value volume from 0 to 1
     */
    this.setVolume = function(value) {
-      audio.volume = value;
+      channels.forEach(function(audio) {
+         audio.volume = value;
+      });
    };
 
    /**
     * @returns {Number} the sound's volume from 0 to 1
     */
    this.getVolume = function() {
-      return audio.volume;
+      return channels[0].volume;
    };
 
    /**
     * @returns {Number} Duration of this sound in seconds
     */
    this.getLength = function() {
-      return audio.duration;
+      return channels[0].duration;
    };
 
    return this;
@@ -2075,6 +2145,11 @@ var gamejs = require('../gamejs');
  * Note that some events, which would trigger a default browser action, are prevented
  * from triggering their default behaviour; i.e. event.preventDefault() is called
  * on those specific events, not on all events.
+ *
+ * All events have a type identifier. This event type is in between the values
+ * of NOEVENT and NUMEVENTS. All user defined events can have the value of
+ * USEREVENT or higher. It is recommended make sure your event id's follow this system.
+ *
  */
 // key constants
 exports.K_UP = 38;
@@ -2139,6 +2214,9 @@ exports.K_KP8 = 104;
 exports.K_KP9 = 105;
 
 // event type constants
+exports.NOEVENT = 0
+exports.NUMEVENTS = 32000
+
 exports.QUIT = 0;
 exports.KEY_DOWN = 1;
 exports.KEY_UP = 2;
@@ -2146,6 +2224,7 @@ exports.MOUSE_MOTION = 3;
 exports.MOUSE_UP = 4;
 exports.MOUSE_DOWN = 5;
 exports.MOUSE_WHEEL = 6;
+exports.USEREVENT = 24;
 
 var QUEUE = [];
 
@@ -2172,6 +2251,13 @@ exports.poll = function() {
 exports.post = function(userEvent) {
    QUEUE.push(userEvent);
    return;
+};
+
+/**
+ * Remove all events from the queue
+ */
+exports.clear = function() {
+   QUEUE = [];
 };
 
 /**
@@ -2864,8 +2950,9 @@ require.define({
  * Use the `findRoute(map, from, to, [timeout])` function to get the linked list
  * leading `from` a point `to` another on the given `map`.
  *
- * The map must implement interface `gamejs.pathfinding.Map` (this
- * class really holds an example implementation & data for you to study).
+ * The map must implement interface `gamejs.pathfinding.Map`. This
+ * class really holds an example implementation & data for you to study. If you
+ * understand what this calls provides, you understand this module.
  *
  * Optionally, the search is canceld after `timeout` in millseconds.
  *
@@ -2878,16 +2965,16 @@ var BinaryHeap = require('../utils/binaryheap').BinaryHeap;
 /**
  * helper function for A*
  */
-function ReachedList() {
+function ReachedList(hashFn) {
    var list = {};
 
    this.store = function(point, route) {
-      list[hash(point)] = route;
+      list[hashFn(point)] = route;
       return;
    };
 
    this.find = function(point) {
-      return list[hash(point)];
+      return list[hashFn(point)];
    };
    return this;
 }
@@ -2896,7 +2983,7 @@ function ReachedList() {
 /** A* search function.
  *
  * This function expects a `Map` implementation and the origin and destination
- * points given as [x,y] arrays. If there is a path between the two it will return the optimal
+ * points given. If there is a path between the two it will return the optimal
  * path as a linked list. If there is no path it will return null.
  *
  * The linked list is in reverse order: the first item is the destination and
@@ -2910,7 +2997,8 @@ function ReachedList() {
  **/
 exports.findRoute = function(map, from, to, timeout) {
    var open = new BinaryHeap(routeScore);
-   var reached = new ReachedList();
+   var hashFn = typeof map.hash === 'function' ? map.hash : defaultHash;
+   var reached = new ReachedList(hashFn);
 
    function routeScore(route) {
       if (route.score === undefined) {
@@ -2922,9 +3010,6 @@ exports.findRoute = function(map, from, to, timeout) {
       open.push(route);
       reached.store(route.point, route);
    }
-   addOpenRoute({point: from,
-                from: null,
-                length: 0});
 
    function processNewPoints(direction) {
       var known = reached.find(direction);
@@ -2942,9 +3027,15 @@ exports.findRoute = function(map, from, to, timeout) {
    }
    var startMs = Date.now();
    var route = null;
+   addOpenRoute({
+      point: from,
+      from: null,
+      length: 0
+   });
+   var equalsFn = typeof map.equals === 'function' ? map.equals : defaultEquals;
    while (open.size() > 0 && (!timeout || Date.now() - startMs < timeout)) {
       route = open.pop();
-      if (equals(to, route.point)) {
+      if (equalsFn(to, route.point)) {
          return route;
       }
       map.adjacent(route.point).forEach(processNewPoints);
@@ -2952,24 +3043,13 @@ exports.findRoute = function(map, from, to, timeout) {
    return null;
 };
 
-/**
- * Unique hash for the point
- * @param {Array} p point
- * @returns {String}
- */
-function hash(p) {
-  return p[0] + "-" + p[1];
-}
-
-/**
- * Are two points equal?
- * @param {Array} a point
- * @param {Array} b point
- * @returns {Boolean}
- */
-function equals(a, b) {
+var defaultEquals = function(a, b) {
    return a[0] === b[0] && a[1] === b[1];
-}
+};
+
+var defaultHash = function(a) {
+   return a[0] + '-' + a[1];
+};
 
 /**
  * This is the interface for a Map that can be passed to the `findRoute()`
@@ -2982,27 +3062,42 @@ var Map = exports.Map = function() {
 
 /**
  * @param {Array} origin
- * @returns {Array} list of `Point`s accessible from given Point
+ * @returns {Array} list of points accessible from given Point
  */
 Map.prototype.adjacent = function(origin) {
 };
 
 /**
- * Estimated lower bound distance between two given points.
- * @param {Array} pointA
- * @param {Array} pointB
+ * @param {Object} a one of the points ot test for equality
+ * @param {Object} b ... the other point
+ * @returns Wheter the two points are equal.
+ */
+Map.prototype.equals = defaultEquals;
+
+/**
+ * @param {Object} a point
+ * @returns {String} hash for the point
+ */
+Map.prototype.hash = defaultHash;
+
+/**
+ * Estimated lower bound distance between two, adjacent points.
+ * @param {Object} pointA
+ * @param {Object} pointB
  * @returns {Number} the estimated distance between two points
  */
 Map.prototype.estimatedDistance = function(pointA, pointB) {
+   return 1;
 };
 
 /**
  * Actual distance between the two given points.
- * @param {Array} pointA
- * @param {Array} pointB
+ * @param {Object} pointA
+ * @param {Object} pointB
  * @returns {Number} the actual distance between two points
  */
 Map.prototype.actualDistance = function(pointA, pointB) {
+   return 1;
 };
 
 }}, ["gamejs/utils/binaryheap"]);/* This file has been generated by yabbler.js */
@@ -3185,6 +3280,9 @@ exports.rotate = function (surface, angle) {
 exports.scale = function(surface, dims) {
    var width = dims[0];
    var height = dims[1];
+   if (width <= 0 || height <= 0) {
+      throw new Error('[gamejs.transform.scale] Invalid arguments for height and width', [width, height]);
+   }
    var oldDims = surface.getSize();
    var ws = width / oldDims[0];
    var hs = height / oldDims[1];
@@ -3200,6 +3298,9 @@ exports.scale = function(surface, dims) {
  * Flip a Surface either vertically, horizontally or both. This returns
  * a new Surface (i.e: nondestructive).
  * @param {gamejs.Surface} surface
+ * @param {Boolean} flipHorizontal
+ * @param {Boolean} flipVertical
+ * @returns {Surface} new, flipped surface
  */
 exports.flip = function(surface, flipHorizontal, flipVertical) {
    var dims = surface.getSize();
@@ -3334,6 +3435,7 @@ exports.circle = function(surface, color, pos, radius, width) {
 exports.rect = function(surface, color, rect, width) {
    var ctx =surface.context;
    ctx.save();
+   ctx.beginPath();
    ctx.strokeStyle = ctx.fillStyle = color;
    if (isNaN(width) || width === 0) {
       ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
@@ -3355,10 +3457,12 @@ exports.rect = function(surface, color, rect, width) {
 exports.arc= function(surface, color, rect, startAngle, stopAngle, width) {
    var ctx = surface.context;
    ctx.save();
+   ctx.beginPath();
    ctx.strokeStyle = ctx.fillStyle = color;
    ctx.arc(rect.center[0], rect.center[1],
             rect.width/2,
-            startAngle * (Math.PI/180), stopAngle * (Math.PI/180), false
+            startAngle * (Math.PI/180), stopAngle * (Math.PI/180),
+            false
          );
    if (isNaN(width) || width === 0) {
       ctx.fill();
@@ -3528,7 +3632,8 @@ var SurfaceArray = exports.SurfaceArray = function(surfaceOrDimensions) {
       data = imageData.data;
    } else {
       size = surfaceOrDimensions.getSize();
-      data = imageData = surfaceOrDimensions.getImageData(0, 0, size[0], size[1]);
+      imageData = surfaceOrDimensions.getImageData(0, 0, size[0], size[1]);
+      data = imageData.data;
    }
    return this;
 };
@@ -3586,7 +3691,6 @@ exports.init = function() {
    if ($loader) {
        $loader.parentNode.removeChild($loader);
    }
-   //jsGameCanvas.setAttribute("style", "width:95%;height:85%");
    return;
 };
 
@@ -3637,6 +3741,8 @@ var getSurface = exports.getSurface = function() {
       var canvas = getCanvas();
       SURFACE = new Surface([canvas.clientWidth, canvas.clientHeight]);
       SURFACE._canvas = canvas;
+      SURFACE._context = canvas.getContext('2d');
+      SURFACE._smooth();
    }
    return SURFACE;
 };
