@@ -1,8 +1,0 @@
-
-I'm designing the levels in Blender. All of the levels are oriented as they are related within the world, but disconnected into separate spaces.
-
-For example, the start apartment and the floor hallway which connects to the lobby and then the outside are arranged so that the doors & elevators are aligned, but without the implied space between them, or with additional space and duplicate doors (inside and outside).
-
-The 3d model serves as both a guide for building the game level files and a way to experiment with models that will be rendered into in-game sprites, and to storyboard.
-
-Individual pieces will be rendered into 2d sprites for the game and assembled into level files.
