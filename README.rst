@@ -6,6 +6,11 @@ This is the source code for a 2d CofeeScript game I'm developing using gamejs.
 
 You can see this code in action at: http://rain-dev.saebyn.info/
 
+I'm using staticmatic to develop locally, you can too::
+
+  $ gem install staticmatic2
+  $ staticmatic2 preview
+
 
 Dependencies
 ------------
