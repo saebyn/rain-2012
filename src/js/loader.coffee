@@ -96,8 +96,6 @@ exports.Loader = class Loader
     # render text - this returns a surface with the text written on it.
     textSurface = font.render("loading... " + @progress())
 
-    display.clear()
-
     x = display.getSize()[0] / 2 - 100
     y = 100
     display.blit(textSurface, [x, y])

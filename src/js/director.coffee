@@ -29,6 +29,7 @@ exports.Director = class Director extends event.Event
     @viewport = new gamejs.Rect(0, 0, width, height)
     @display = gamejs.display.setMode([width, height])
     @activeScene = false
+    @sceneStack = []
     @live = false
     gamejs.time.fpsCallback(@tick, this, 30)
 
@@ -41,14 +42,27 @@ exports.Director = class Director extends event.Event
           when gamejs.event.KEY_DOWN then @trigger('keydown', event)
           when gamejs.event.KEY_UP then @trigger('keyup', event)
 
-      @trigger('update', msDuration)
-      @trigger('draw', @display)
+      # Reverse order that we trigger these events so that callbacks
+      # are executed in the order the scene was added to the director
+      @triggerReverse('update', msDuration)
+      @display.clear()
+      @triggerReverse('draw', @display)
     else
       gamejs.event.get()  # discard unused events
 
   start: (scene) ->
     @live = true
     @replaceScene(scene)
+
+  addScene: (scene) ->
+    if @activeScene
+      @sceneStack.push(@activeScene)
+
+    @activeScene = scene
+    @activeScene.start()
+
+  discardScene: ->
+    @activeScene = @sceneStack.pop()
 
   replaceScene: (scene) ->
     # remove all existing event bindings

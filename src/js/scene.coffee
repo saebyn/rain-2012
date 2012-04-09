@@ -33,6 +33,9 @@ exports.Scene = class Scene
     @viewportRect = @director.getViewport()
     @paused = false
 
+    # TODO show mobile device preview
+    # TODO add new "mobile device" scene that can be switched to
+
     @modalDialogs = new gamejs.sprite.Group()
 
     # backgrounds are non-interactive sprites
@@ -142,7 +145,6 @@ exports.Scene = class Scene
       @characters.update(msDuration)
 
   draw: (display) ->
-    display.clear()
     @backgrounds.draw(display)
     @solids.draw(display)
     @items.draw(display)

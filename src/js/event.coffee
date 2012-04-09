@@ -65,3 +65,19 @@ exports.Event = class Event
           return false
 
     return true
+
+  # Identical to trigger, but calls callbacks from least-recently bound to
+  # most-recently.
+  triggerReverse: (ev, args...) ->
+    if ev != 'all'
+      if @trigger('all', [ev, args...]) is false
+        return false
+
+    @callbacks ?= {}
+
+    if ev of @callbacks
+      for callback in @callbacks[ev]
+        if callback(args...) is false
+          return false
+
+    return true
