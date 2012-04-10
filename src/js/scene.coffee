@@ -26,6 +26,7 @@ pathfinding = require 'pathfinding'
 entity = require 'entity'
 loader = require 'loader'
 menu = require 'menu'
+mobile = require 'mobile'
 
 
 exports.Scene = class Scene
@@ -33,8 +34,7 @@ exports.Scene = class Scene
     @viewportRect = @director.getViewport()
     @paused = false
 
-    # TODO show mobile device preview
-    # TODO add new "mobile device" scene that can be switched to
+    @mobileDisplay = new mobile.MobileSprite(@director)
 
     @modalDialogs = new gamejs.sprite.Group()
 
@@ -104,6 +104,7 @@ exports.Scene = class Scene
         when gamejs.event.K_d then @playerMove = ->
         when gamejs.event.K_ESC then @pause()
 
+    @mobileDisplay.start()
 
   stop: ->
 
@@ -143,12 +144,15 @@ exports.Scene = class Scene
     if not @paused
       @playerMove()
       @characters.update(msDuration)
+      @mobileDisplay.update(msDuration)
 
   draw: (display) ->
     @backgrounds.draw(display)
+    @portals.draw(display)
     @solids.draw(display)
     @items.draw(display)
     @characters.draw(display)
+    @mobileDisplay.draw(display)
 
     if @modalDialogs.sprites().length > 0
       display.fill('rgba(0, 0, 0, 0.7)')

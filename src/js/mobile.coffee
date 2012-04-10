@@ -21,13 +21,27 @@
 #
 
 gamejs = require 'gamejs'
-director = require 'director'
-loader = require 'loader'
-
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
 
 
-gamejs.ready ->
-  gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
-  gameDirector.start(new loader.Loader(gameDirector, 'level1.json'))
+exports.MobileSprite = class MobileSprite
+  constructor: (@director) ->
+    width = 200
+    height = 266
+    marginRight = 10
+    marginBottom = 10
+    @rect = new gamejs.Rect(@director.viewport.right-width-marginRight,
+                            @director.viewport.bottom-height-marginBottom,
+                            width, height)
+
+  start: ->
+    @director.bind 'mousedown', @click
+
+  click: (event) =>
+    if event.button == 0 and @rect.collidePoint(event.pos)
+      return false
+
+  update: (ms) ->
+
+  draw: (display) ->
+    # TODO render mobile device
+    gamejs.draw.rect(display, '#ffff00', @rect, 4);

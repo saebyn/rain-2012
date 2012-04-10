@@ -46,8 +46,21 @@ exports.EntityBuilder = class EntityBuilder
       when 'backgrounds' then new BackgroundSprite(@scene, rect, distance)
       when 'portals' then new Portal(@scene, rect, destination)
 
-    @loadSpriteSpec(entity, parameters)
+    if @type != 'portals'
+      @loadSpriteSpec(entity, parameters)
+
     @group.add(entity)
+
+    # a bit of a hack to ensure proper sprite order for backgrounds
+    if @type == 'backgrounds'
+      @group._sprites.sort (a,b) ->
+        if a.distance > b.distance
+          -1
+        else if a.distance < b.distance
+          1
+        else
+          0
+
     entity
 
   drawRepeat: (source, dest, repeatX, repeatY) ->
@@ -130,12 +143,12 @@ class BackgroundSprite extends Entity
       if @distance == 0
         return newRect
       playerRect = @scene.player.rect
-      # get x distance from this rect to player
-      dx = newRect.x - playerRect.x
+      # get x distance from player to this rect
+      dx = newRect.center[0] - playerRect.center[0]
       # calculate offset based on @distance
-      dx *= @distance / 500.0
       # apply offset to rect
-      newRect.move(dx, 0)
+      offset = dx * (@distance / (1.2 * 10000.0))
+      newRect.move(-offset, 0)
 
     rectSet = (rect) ->
       @worldRect = @scene.toWorldRect(rect)
@@ -147,6 +160,9 @@ class BackgroundSprite extends Entity
 class Portal extends Entity
   constructor: (scene, rect, @destination) ->
     super(scene, rect)
+    @image = new gamejs.Surface(rect)
+    @image.fill("#ffaaaa")
+    @image.setAlpha(0.1)
 
 
 class Character extends Entity
