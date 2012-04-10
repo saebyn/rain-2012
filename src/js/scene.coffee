@@ -34,7 +34,7 @@ exports.Scene = class Scene
     @viewportRect = @director.getViewport()
     @paused = false
 
-    @mobileDisplay = new mobile.MobileSprite(@director)
+    @mobileDisplay = new mobile.MobileDisplay(@director)
 
     @modalDialogs = new gamejs.sprite.Group()
 
@@ -107,6 +107,8 @@ exports.Scene = class Scene
     @mobileDisplay.start()
 
   stop: ->
+    # XXX its unsafe to rely on this scene unbinding its own events
+    @mobileDisplay.stop()
 
   leftClick: (point) ->
     # check for any modal dialogs in the modals group and click on the last one

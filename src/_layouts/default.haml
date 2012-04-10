@@ -50,7 +50,7 @@
   -# All JavaScript at the bottom, except for Modernizr
     Modernizr enables HTML5 elements & feature detects;
     For optimal performance, use a custom Modernizr build: www.modernizr.com/download/
-  %script{:src => "/js/lib/modernizr.min.js"}
+  %script{:src => "/js/lib/modernizr.js"}
 
 %body
   #container
@@ -62,6 +62,9 @@
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script
+  %script{:src => "/js/lib/jquery.js"}
+  %script{:src => "/js/lib/underscore.js"}
+  %script{:src => "/js/lib/backbone.js"}
   %script{:src => "/js/lib/yabble.js"}
   %script{:src => "/js/lib/gamejs.js"}
   :javascript

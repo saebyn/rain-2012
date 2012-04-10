@@ -23,7 +23,7 @@
 gamejs = require 'gamejs'
 
 
-exports.MobileSprite = class MobileSprite
+exports.MobileDisplay = class MobileDisplay
   constructor: (@director) ->
     width = 200
     height = 266
@@ -32,9 +32,15 @@ exports.MobileSprite = class MobileSprite
     @rect = new gamejs.Rect(@director.viewport.right-width-marginRight,
                             @director.viewport.bottom-height-marginBottom,
                             width, height)
+    @el$ = @director.createHTMLElement(@rect.inflate(-4, -4))
+    @el$.attr({id: 'mobile'})
+    # TODO render mobile device via HTML
 
   start: ->
     @director.bind 'mousedown', @click
+
+  stop: ->
+    @director.unbind 'mousedown', @click
 
   click: (event) =>
     if event.button == 0 and @rect.collidePoint(event.pos)
@@ -43,5 +49,4 @@ exports.MobileSprite = class MobileSprite
   update: (ms) ->
 
   draw: (display) ->
-    # TODO render mobile device
-    gamejs.draw.rect(display, '#ffff00', @rect, 4);
+    gamejs.draw.rect(display, '#ffff00', @rect);

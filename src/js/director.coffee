@@ -62,6 +62,9 @@ exports.Director = class Director extends event.Event
     @activeScene.start()
 
   discardScene: ->
+    if @activeScene
+      @activeScene.stop()
+
     @activeScene = @sceneStack.pop()
 
   replaceScene: (scene) ->
@@ -78,3 +81,30 @@ exports.Director = class Director extends event.Event
 
   getViewport: ->
     @viewport.clone()
+
+  # Return a new rect that has its coordinates converted from the position
+  # relative to the canvas to an absolute position within the HTML5 document.
+  canvasRectToDocumentRect: (rect) ->
+    canvas = $ '#gjs-canvas'
+    canvasPadding = 2  # fudge factor for our canvas border/padding/margin
+    rect.move canvas.offset().left + canvasPadding, canvas.offset().top + canvasPadding
+
+  # Create an HTML element at the canvas-relative rectangle, positioned
+  # absolutly and sized to match the rect, above the canvas.
+  createHTMLElement: (rect) ->
+    el$ = $ document.createElement('div')
+    rect = @canvasRectToDocumentRect(rect)
+
+    # set positioning, position, size, z-index
+    el$.css(
+      position: 'absolute'
+      top: rect.top
+      left: rect.left
+      width: rect.width
+      height: rect.height
+      zIndex: 1000
+      backgroundColor: '#33ffaa'
+    )
+    # insert element into DOM
+    $('body').append(el$[0])
+    el$
