@@ -24,8 +24,8 @@ gamejs = require 'gamejs'
 director = require 'director'
 loader = require 'loader'
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = $(document).width() - 200
+SCREEN_HEIGHT = $(document).height() - 200
 
 
 gamejs.ready ->
