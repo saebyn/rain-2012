@@ -29,5 +29,6 @@ SCREEN_HEIGHT = $(document).height() - 200
 
 
 gamejs.ready ->
-  gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
+  # make a global for ease of debugging
+  window.gameDirector = gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
   gameDirector.start(new loader.Loader(gameDirector, 'level1.json'))

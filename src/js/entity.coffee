@@ -147,7 +147,7 @@ class BackgroundSprite extends Entity
       dx = @worldRect.center[0] - playerRect.center[0]
       # calculate offset based on @distance
       # apply offset to rect
-      offset = dx * (@distance / (1.2 * 10000.0))
+      offset = dx * (@distance / (12000.0))
       @scene.toScreenRect(@worldRect.move(-offset, 0))
 
     rectSet = (rect) ->
@@ -171,6 +171,7 @@ class Character extends Entity
     @direction = [0.0, 0.0]  # our current movement vector
 
     @landed = false
+    @collided = false
 
     @baseSpeed = 0.1
     @speedIncrement = 0.2
@@ -183,6 +184,7 @@ class Character extends Entity
   handleCollisions: (movement) ->
     # if applying movement to the rect results in no collisions, return movement
     rect = @worldRect.move(movement)
+    @collided = false
     collisions = (sprite for sprite in @scene.solids.sprites() when sprite.worldRect.collideRect(rect))
     # if there are any collisions, handle them
     for sprite in collisions
@@ -192,9 +194,11 @@ class Character extends Entity
 
         if movement[0] < 0 and rect.left <= sprite.worldRect.right and (rect.left - sprite.worldRect.right) > movement[0]
           rect.left = sprite.worldRect.right + 1
+          @collided = true
           @clearXMomentum()
         else if movement[0] > 0 and rect.right >= sprite.worldRect.left and (rect.right - sprite.worldRect.left) < movement[0]
           rect.right = sprite.worldRect.left - 1
+          @collided = true
           @clearXMomentum()
 
       if rect.collideRect(sprite.worldRect)  # because we may no longer collide
@@ -225,7 +229,6 @@ class Character extends Entity
     # decrease direction vector based on movement
     @direction[0] = threshold(@direction[0] / 2.0, @baseSpeed)
     @direction[1] = threshold(@direction[1] / 2.0, @baseSpeed)
-
 
     # clean up the coordinates
     @worldRect.top = (0.5 + @worldRect.top) | 0
@@ -260,10 +263,7 @@ class NPCharacter extends Character
   startDialog: ->
     @behavior.input('dialog')
     # construct and return dialog menu
-    # TODO extract dialog options from somewhere...
-    # maybe have dialogs stored in the scene? (as a separate entity type like portals, solids, etc)
-    #   needs: text, options={optionText: fsmInputToken, ...}
-    # maybe have NPC entities define the relationship between fsm states and dialog entries?
+    # TODO extract dialog options
     new menu.DialogMenu(@, @scene.getDirector().getViewport(), 'What do you want?', ['...'])
 
   trigger: (event, args...) ->
@@ -278,16 +278,22 @@ class NPCharacter extends Character
   pace: (distance) ->
     # setup for when starting
     if not @paceDirection?
-      @paceDirection = -1.0
+      @paceDirection = -1
       @paceCenter = @position[0]
       # @lastPace != @position[0] when no collision occured
       @lastPace = @paceCenter - @paceDirection
 
+    walkedFarEnough = Math.abs(@position[0] - @paceCenter) > distance
+
     # if we stopped (because of collision) or if we have walked far enough
-    if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > distance
+    if @collided or walkedFarEnough
+      if walkedFarEnough
+        # make sure that we don't go outside of area and get trapped out
+        @worldRect.left = @paceCenter + (distance * @paceDirection)
+
       # clear existing pacing motions
       @clearXMomentum()
-      @paceDirection *= -1.0  # switch direction
+      @paceDirection *= -1  # switch direction
 
     @addMotion(@paceDirection * @baseSpeed, 0.0)
     @lastPace = @position[0]

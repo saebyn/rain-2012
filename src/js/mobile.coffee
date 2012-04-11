@@ -55,6 +55,7 @@ exports.MobileDisplay = class MobileDisplay
   draw: (display) ->
 
 
+# TODO contact app, sms app, browser app
 MobileView = Backbone.View.extend
   template: _.template($('#mobile-device-tmpl').html())
   events:
