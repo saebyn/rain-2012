@@ -215,8 +215,60 @@ td { vertical-align: top; }
 
 #gjs-canvas { border: 2px solid black; margin: 10px 20px; }
 
+.rounded-bottom {
+  -webkit-border-bottom-right-radius: 8px;
+  -webkit-border-bottom-left-radius: 8px;
+  -moz-border-radius-bottomright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
 
+.rounded-top {
+  -webkit-border-top-right-radius: 8px;
+  -webkit-border-top-left-radius: 8px;
+  -moz-border-radius-topright: 8px;
+  -moz-border-radius-topleft: 8px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+}
 
+/* styles for in-game mobile device */
+#game-mobile {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+}
+
+#game-mobile .status-bar, #game-mobile .home-screen {
+  width: 100%;
+}
+
+#game-mobile .status-bar .notifications.collapsed * {
+  display: none;
+}
+
+#game-mobile .status-bar .notifications {
+  position: absolute;
+  background: lightgray;
+  width: 100%;
+  height: 242px;
+}
+
+#game-mobile .status-bar .notifications.collapsed {
+  height: auto;
+}
+
+#game-mobile .status-bar .notifications .bar {
+  position: absolute;
+  bottom: 0px;
+}
+
+#game-mobile .status-bar .bar {
+  height: 20px;
+  width: 100%;
+  background-color: gray;
+}
 
 
 

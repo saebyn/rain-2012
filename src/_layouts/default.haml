@@ -59,6 +59,10 @@
       = yield
     %footer
 
+  -# Include JS templates
+  %script{:type => "text/template", :id => "mobile-device-tmpl"}
+    = partial "mobile"
+
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script

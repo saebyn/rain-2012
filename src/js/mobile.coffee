@@ -32,12 +32,16 @@ exports.MobileDisplay = class MobileDisplay
     @rect = new gamejs.Rect(@director.viewport.right-width-marginRight,
                             @director.viewport.bottom-height-marginBottom,
                             width, height)
-    @el$ = @director.createHTMLElement(@rect.inflate(-4, -4))
-    @el$.attr({id: 'mobile'})
-    # TODO render mobile device via HTML
+    el$ = @director.createHTMLElement(@rect.inflate(-4, -4))
+    el$.attr({id: 'game-mobile'})
+    @view = new MobileView({el: el$})
+    @view.render()
 
   start: ->
     @director.bind 'mousedown', @click
+    # TODO here is where we'll tie game events into a mobile backbone model
+    # that model will be used in by the MobileView below to drive its
+    # functionality
 
   stop: ->
     @director.unbind 'mousedown', @click
@@ -49,4 +53,19 @@ exports.MobileDisplay = class MobileDisplay
   update: (ms) ->
 
   draw: (display) ->
-    gamejs.draw.rect(display, '#ffff00', @rect);
+
+
+MobileView = Backbone.View.extend
+  template: _.template($('#mobile-device-tmpl').html())
+  events:
+    'click h1': 'click'
+    'click .bar': 'toggleNotifications'
+
+  click: =>
+    @.$('.summary').text('coming soon')
+
+  toggleNotifications: =>
+    @.$('.status-bar .notifications').toggleClass('collapsed')
+
+  render: ->
+    @$el.html(@template())
