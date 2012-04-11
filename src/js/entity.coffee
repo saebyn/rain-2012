@@ -139,16 +139,16 @@ class BackgroundSprite extends Entity
     super(scene, rect)
 
     rectGet = ->
-      newRect = @scene.toScreenRect(@worldRect)
       if @distance == 0
-        return newRect
+        return @scene.toScreenRect(@worldRect)
+
       playerRect = @scene.player.rect
       # get x distance from player to this rect
-      dx = newRect.center[0] - playerRect.center[0]
+      dx = @worldRect.center[0] - playerRect.center[0]
       # calculate offset based on @distance
       # apply offset to rect
       offset = dx * (@distance / (1.2 * 10000.0))
-      newRect.move(-offset, 0)
+      @scene.toScreenRect(@worldRect.move(-offset, 0))
 
     rectSet = (rect) ->
       @worldRect = @scene.toWorldRect(rect)
