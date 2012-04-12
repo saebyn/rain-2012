@@ -88,12 +88,16 @@ exports.EntityBuilder = class EntityBuilder
     sheetImage = gamejs.image.load(@spritesheets[spritesheetName].image)
 
     spriteDef = @spritesheets[spritesheetName].sprites[spriteName]
-    # PROBLEM: FIXME the source area of the spritesheet isn't dealt with correctly by gamejs
+
     srcArea = new gamejs.Rect([spriteDef.x, spriteDef.y],
                               [spriteDef.width, spriteDef.height])
+    # destination area has to be specified with a Rect to ensure
+    # that the correct width and height are used, otherwise it defaults
+    # to the size of the source area (which doesn't work at all)
+    destArea = new gamejs.Rect([0, 0], [spriteDef.width, spriteDef.height])
 
     # extract the specific sprite from the sheet
-    image.blit(sheetImage, [0, 0], srcArea)
+    image.blit(sheetImage, destArea, srcArea)
     image
 
   loadSpriteSpec: (sprite, spec) ->
