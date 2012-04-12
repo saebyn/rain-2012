@@ -127,7 +127,10 @@ exports.EntityBuilder = class EntityBuilder
       [0...spriteDef.frames]
     else
       frameKey = entity.frameKey or 'default'
-      [spriteDef.frames[frameKey][0]..spriteDef.frames[frameKey][1]]
+      if frameKey of spriteDef.frames
+        [spriteDef.frames[frameKey][0]..spriteDef.frames[frameKey][1]]
+      else
+        [0]
 
   # return the number of frames in the sprite animation
   getFrameCount: (entity, spriteDef) ->
@@ -307,6 +310,11 @@ class Character extends Entity
     if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
       @frameKey = 'running'
 
+    if @looking == 'right'
+      @frameKey += '-right'
+    else if @looking == 'left'
+      @frameKey += '-left'
+
     if @direction[1] < 0
       @frameKey = 'jumping'
 
@@ -411,6 +419,7 @@ exports.Player = class Player extends Character
   constructor: (scene, rect) ->
     super(scene, rect)
     @player = true
+    @looking = ''
     @sprinting = false
 
   update: (msDuration) ->
@@ -420,15 +429,17 @@ exports.Player = class Player extends Character
 
   getSpeedIncrement: ->
     if @sprinting
-      @speedIncrement * 2.0
+      @speedIncrement * 1.8
     else
       @speedIncrement
 
   left: ->
+    @looking = 'left'
     @addMotion(-@getSpeedIncrement(), 0.0)
     @
 
   right: ->
+    @looking = 'right'
     @addMotion(@getSpeedIncrement(), 0.0)
     @
 
