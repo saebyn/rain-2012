@@ -79,15 +79,20 @@ exports.Loader = class Loader
     (@getLoadProgress() * 100) + '%'
 
   update: (msDuration) ->
-     if @loaded
-       newScene = new scene.Scene(@director, @level.size, @level.playerStart)
-       for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
-         if @level[entityType]?
-           entityBuilder = newScene.getEntityBuilder(entityType, @spritesheets)
-           for entityName, entityDef of @level[entityType]
-             entityBuilder.newEntity(entityDef)
+    if @loaded
+      newScene = new scene.Scene(@director, @level.size)
+      for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
+        if @level[entityType]?
+          entityBuilder = newScene.getEntityBuilder(entityType, @spritesheets)
+          for entityName, entityDef of @level[entityType]
+            entityBuilder.newEntity(entityDef)
 
-       @director.replaceScene(newScene)
+      playerSize = [64, 128]
+      playerRect = newScene.toScreenRect(new gamejs.Rect(@level.playerStart, playerSize))
+      entityBuilder = newScene.getEntityBuilder('player', @spritesheets)
+      entityBuilder.newPlayer(playerRect, @level.playerSprite)
+
+      @director.replaceScene(newScene)
 
   draw: (display) ->
     # draw progress

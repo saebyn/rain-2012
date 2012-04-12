@@ -30,7 +30,7 @@ mobile = require 'mobile'
 
 
 exports.Scene = class Scene
-  constructor: (@director, worldSize, playerStart) ->
+  constructor: (@director, worldSize) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -57,12 +57,6 @@ exports.Scene = class Scene
     @worldWidth = worldSize[0]
     @worldHeight = worldSize[1]
 
-    playerSize = [64, 128]
-    @player = new entity.Player(this, @toScreenRect(new gamejs.Rect(playerStart, playerSize)))
-    @player.image = new gamejs.Surface(@player.rect)
-    @player.image.fill('#ff0000')
-    @characters.add(@player)
-
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
 
@@ -75,6 +69,7 @@ exports.Scene = class Scene
       when 'solids' then @solids
       when 'backgrounds' then @backgrounds
       when 'portals' then @portals
+      when 'player' then @characters
 
     return new entity.EntityBuilder(@, group, entityType, spritesheets)
 
@@ -97,12 +92,14 @@ exports.Scene = class Scene
         when gamejs.event.K_a then @playerMove = -> @player.left()
         when gamejs.event.K_d then @playerMove = -> @player.right()
         when gamejs.event.K_SPACE then @player.jump()
+        when gamejs.event.K_SHIFT then @player.startSprint()
 
     @director.bind 'keyup', (event) =>
       switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
         when gamejs.event.K_ESC then @pause()
+        when gamejs.event.K_SHIFT then @player.stopSprint()
 
     @mobileDisplay.start()
 
@@ -147,6 +144,7 @@ exports.Scene = class Scene
       @playerMove()
       @characters.update(msDuration)
       @mobileDisplay.update(msDuration)
+      @solids.update(msDuration)
 
   draw: (display) ->
     @backgrounds.draw(display)

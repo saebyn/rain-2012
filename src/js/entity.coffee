@@ -34,6 +34,13 @@ threshold = (value, level, min = 0.0) ->
 exports.EntityBuilder = class EntityBuilder
   constructor: (@scene, @group, @type, @spritesheets) ->
 
+  newPlayer: (rect, spriteName) ->
+    player = new Player(@scene, rect)
+    @setupSprite(player, spriteName)
+    @group.add(player)
+    @scene.player = player
+    player
+
   newEntity: (parameters={}) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
     behavior = parameters.behavior or []
@@ -69,27 +76,42 @@ exports.EntityBuilder = class EntityBuilder
       for y in [0...repeatY]
         dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
 
-  applyImageSpec: (sprite, rawImage, spec) ->
-      if spec.repeat? and spec.repeat != 'none'
-        sprite.image = new gamejs.Surface(sprite.rect)
+  applyImageSpec: (entity, rawImage, spec) ->
+      if spec and spec.repeat? and spec.repeat != 'none'
+        if not entity.image?
+          entity.image = new gamejs.Surface(entity.rect)
+
         imageSize = rawImage.getSize()
         switch spec.repeat
-          when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
-          when 'y' then @drawRepeat(rawImage, sprite.image, 1, sprite.rect.height / imageSize[1])
-          when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
+          when 'x' then @drawRepeat(rawImage, entity.image, entity.rect.width / imageSize[0], 1)
+          when 'y' then @drawRepeat(rawImage, entity.image, 1, entity.rect.height / imageSize[1])
+          when 'xy' then @drawRepeat(rawImage, entity.image, entity.rect.width / imageSize[0], entity.rect.height / imageSize[1])
       else
-        sprite.image = rawImage
+        entity.image = rawImage
 
   loadSpriteFromSheet: (name, rect) ->
     [spritesheetName, spriteName] = name.split('.')
-    image = new gamejs.Surface(rect)
 
     # load the spritesheet image
     sheetImage = gamejs.image.load(@spritesheets[spritesheetName].image)
 
     spriteDef = @spritesheets[spritesheetName].sprites[spriteName]
+    image = @getSpriteImage(rect, sheetImage, spriteDef)   
+    [image, sheetImage, spriteDef]
 
-    srcArea = new gamejs.Rect([spriteDef.x, spriteDef.y],
+  getSpriteImage: (rect, sheetImage, spriteDef, frame=0) ->
+    image = new gamejs.Surface(rect)
+
+    x = spriteDef.x
+    y = spriteDef.y
+
+    if frame != 0
+      if spriteDef.direction == 'x'
+        x += spriteDef.width * frame
+      else if spriteDef.direction == 'y'
+        y += spriteDef.height * frame
+
+    srcArea = new gamejs.Rect([x, y],
                               [spriteDef.width, spriteDef.height])
     # destination area has to be specified with a Rect to ensure
     # that the correct width and height are used, otherwise it defaults
@@ -100,16 +122,61 @@ exports.EntityBuilder = class EntityBuilder
     image.blit(sheetImage, destArea, srcArea)
     image
 
-  loadSpriteSpec: (sprite, spec) ->
+  getFrames: (entity, spriteDef) ->
+    if not isNaN(parseInt(spriteDef.frames))
+      [0...spriteDef.frames]
+    else
+      frameKey = entity.frameKey or 'default'
+      [spriteDef.frames[frameKey][0]..spriteDef.frames[frameKey][1]]
+
+  # return the number of frames in the sprite animation
+  getFrameCount: (entity, spriteDef) ->
+    @getFrames(entity, spriteDef).length
+
+  # return the start frame of the sprite animation
+  getStartFrame: (entity, spriteDef) ->
+    @getFrames(entity, spriteDef)[0]
+
+  normalizeFrame: (entity, spriteDef) ->
+    frameIndex = entity.frame - @getStartFrame(entity, spriteDef)
+    normalizedFrameIndex = frameIndex % @getFrameCount(entity, spriteDef)
+    entity.frame = normalizedFrameIndex + @getStartFrame(entity, spriteDef)
+
+  loadAnimation: (spriteDef, entity, sheetImage, spec) ->
+    # TODO consider moving some of this code (and the methods it uses) into the Entity
+    if spriteDef.frames?
+      entity.updateAnimation = (msDuration) =>
+        if not entity.frame?
+          entity.frame = @getStartFrame(entity, spriteDef)
+
+        if not entity.frameTime?
+          entity.frameTime = 0
+
+        entity.frameTime += msDuration
+
+        if entity.frameTime >= spriteDef.frameDelay
+          entity.frame += (entity.frameTime / spriteDef.frameDelay) | 0
+          entity.frameTime = 0
+
+        @normalizeFrame(entity, spriteDef)
+
+        updatedImage = @getSpriteImage(entity.rect, sheetImage, spriteDef, entity.frame)
+        @applyImageSpec(entity, updatedImage, spec)
+
+  setupSprite: (entity, spriteName, spec=false) ->
+      [rawImage, sheetImage, spriteDef] = @loadSpriteFromSheet(spriteName, entity.rect)
+      @applyImageSpec(entity, rawImage, spec)
+      @loadAnimation(spriteDef, entity, sheetImage, spec)
+
+  loadSpriteSpec: (entity, spec) ->
     if spec.image?
       rawImage = gamejs.image.load(spec.image)
-      @applyImageSpec(sprite, rawImage, spec)
+      @applyImageSpec(entity, rawImage, spec)
     else if spec.sprite?
-      rawImage = @loadSpriteFromSheet(spec.sprite, sprite.rect)
-      @applyImageSpec(sprite, rawImage, spec)
+      @setupSprite(entity, spec.sprite, spec)
     else if spec.color?
-      sprite.image = new gamejs.Surface(sprite.rect)
-      sprite.image.fill(spec.color)
+      entity.image = new gamejs.Surface(entity.rect)
+      entity.image.fill(spec.color)
 
 
 class Entity extends gamejs.sprite.Sprite
@@ -133,6 +200,10 @@ class Entity extends gamejs.sprite.Sprite
 
     $o.accessor(this, 'rect', rectGet, rectSet)
     $o.accessor(this, 'position', positionGet, positionSet)
+
+  update: (msDuration) ->
+    if @updateAnimation?
+      @updateAnimation(msDuration)
 
   getScene: ->
     @scene
@@ -226,6 +297,19 @@ class Character extends Entity
     @direction[1] = 0.0
 
   update: (msDuration) ->
+    super(msDuration)
+
+    @frameKey = 'default'
+
+    if Math.abs(@direction[0]) > 0
+      @frameKey = 'walking'
+
+    if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
+      @frameKey = 'running'
+
+    if @direction[1] < 0
+      @frameKey = 'jumping'
+
     movement = $v.multiply(@direction, msDuration)
     movement = @handleCollisions(movement)
     @worldRect.moveIp(movement)
@@ -327,17 +411,25 @@ exports.Player = class Player extends Character
   constructor: (scene, rect) ->
     super(scene, rect)
     @player = true
+    @sprinting = false
 
   update: (msDuration) ->
     super(msDuration)
+
     @scene.center(@position)
 
+  getSpeedIncrement: ->
+    if @sprinting
+      @speedIncrement * 2.0
+    else
+      @speedIncrement
+
   left: ->
-    @addMotion(-@speedIncrement, 0.0)
+    @addMotion(-@getSpeedIncrement(), 0.0)
     @
 
   right: ->
-    @addMotion(@speedIncrement, 0.0)
+    @addMotion(@getSpeedIncrement(), 0.0)
     @
 
   jump: ->
@@ -345,3 +437,9 @@ exports.Player = class Player extends Character
       @landed = false
       @addMotion(0.0, @jumpSpeed)
     @
+
+  startSprint: ->
+    @sprinting = true
+
+  stopSprint: ->
+    @sprinting = false

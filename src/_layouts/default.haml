@@ -66,11 +66,11 @@
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script
-  %script{:src => "/js/lib/jquery.js"}
-  %script{:src => "/js/lib/underscore.js"}
-  %script{:src => "/js/lib/backbone.js"}
-  %script{:src => "/js/lib/yabble.js"}
-  %script{:src => "/js/lib/gamejs.js"}
+  = javascripts "lib/jquery"
+  = javascripts "lib/underscore"
+  = javascripts "lib/backbone"
+  = javascripts "lib/yabble"
+  = javascripts "lib/gamejs"
   :javascript
     var $g = {
       ajaxBaseHref: "/assets/",
