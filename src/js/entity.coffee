@@ -250,6 +250,7 @@ class Character extends Entity
 
     @landed = false
     @collided = false
+    @looking = ''
 
     @baseSpeed = 0.1
     @speedIncrement = 0.2
@@ -310,13 +311,13 @@ class Character extends Entity
     if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
       @frameKey = 'running'
 
+    if @direction[1] < 0
+      @frameKey = 'jumping'
+
     if @looking == 'right'
       @frameKey += '-right'
     else if @looking == 'left'
       @frameKey += '-left'
-
-    if @direction[1] < 0
-      @frameKey = 'jumping'
 
     movement = $v.multiply(@direction, msDuration)
     movement = @handleCollisions(movement)
@@ -344,6 +345,11 @@ class Character extends Entity
       x = -@maxSpeed
     else if x > @maxSpeed
       x = @maxSpeed
+
+    if x < 0
+      @looking = 'left'
+    else if x > 0
+      @looking = 'right'
 
     y += @direction[1]
 
@@ -419,7 +425,6 @@ exports.Player = class Player extends Character
   constructor: (scene, rect) ->
     super(scene, rect)
     @player = true
-    @looking = ''
     @sprinting = false
 
   update: (msDuration) ->
@@ -434,12 +439,10 @@ exports.Player = class Player extends Character
       @speedIncrement
 
   left: ->
-    @looking = 'left'
     @addMotion(-@getSpeedIncrement(), 0.0)
     @
 
   right: ->
-    @looking = 'right'
     @addMotion(@getSpeedIncrement(), 0.0)
     @
 
