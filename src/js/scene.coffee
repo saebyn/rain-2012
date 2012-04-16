@@ -60,6 +60,9 @@ exports.Scene = class Scene
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
 
+  getPlayer: ->
+    @player
+
   getDirector: ->
     @director
 

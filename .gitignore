@@ -6,3 +6,4 @@ build/
 config/amazon.yml
 src/assets
 src/js/lib
+src/js/dialog

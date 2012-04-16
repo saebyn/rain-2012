@@ -26,6 +26,8 @@ $o = require 'gamejs/utils/objects'
 fsm = require 'fsm'
 menu = require 'menu'
 
+npcDialog = require 'dialog/test'
+
 
 threshold = (value, level, min = 0.0) ->
   if Math.abs(value) < level then min else value
@@ -48,7 +50,7 @@ exports.EntityBuilder = class EntityBuilder
     destination = parameters.destination or ''
 
     entity = switch @type
-      when 'npcs' then new NPCharacter(@scene, rect, behavior)
+      when 'npcs' then new NPCharacter(@scene, rect, parameters.dialog, behavior)
       when 'solids' then new Entity(@scene, rect)
       when 'backgrounds' then new BackgroundSprite(@scene, rect, distance)
       when 'portals' then new Portal(@scene, rect, destination)
@@ -357,18 +359,62 @@ class Character extends Entity
 
 
 class NPCharacter extends Character
-  constructor: (scene, rect, behavior) ->
+  constructor: (scene, rect, dialogName, behavior) ->
     super(scene, rect)
     @behavior = new fsm.FSM(behavior, @behaviorDispatch)
     @behavior.input('start')
+    if dialogName
+      # `dialog` is the dialog object selected for this NPC
+      # this should not be changed after being set
+      @dialog = new npcDialog.dialogs[dialogName](
+        player: @scene.getPlayer(),
+        self: @
+      )
+      # `dialogResponse` is the current response given to the player
+      # it should be null when the NPC isn't talking to the player
+      @dialogResponse = null
+
+  updateDialog: ->
+    # extract dialog options
+    options = ([option] for option in @dialogResponse.getOptions())
+    # add dialog exit option
+    options.push(['Bye', 'exitdialog'])
+    if not @dialogMenu?
+      @dialogMenu = new menu.DialogMenu(@, @scene.getDirector().getViewport())
+
+    @dialogMenu.build(@dialogResponse.text, options)
+    @dialogMenu
 
   startDialog: ->
-    @behavior.input('dialog')
-    # construct and return dialog menu
-    # TODO extract dialog options
-    new menu.DialogMenu(@, @scene.getDirector().getViewport(), 'What do you want?', ['...'])
+    if not @dialog?
+      return
+
+    @dialogResponse = @dialog.getResponse()
+    if @dialogResponse
+      @behavior.input('dialog')
+      @updateDialog()
+
+  stopDialog: ->
+    @behavior.input('exitdialog')
+    @dialogMenu.kill()
+    @dialogMenu = null
+    @dialogResponse = null
+
+  chooseDialogOption: (option) ->
+    optionObj = @dialogResponse.choose(option)
+    console.log optionObj
+    @dialogResponse = optionObj.getResponse()
+    console.log @dialogResponse, @dialogResponse?
+    if @dialogResponse
+      @updateDialog()
+    else
+      @stopDialog()
 
   trigger: (event, args...) ->
+    if event == 'exitdialog'
+      @stopDialog()
+    else if event == 'dialog'
+      @chooseDialogOption(args[0])
 
   update: (msDuration) ->
     super(msDuration)
