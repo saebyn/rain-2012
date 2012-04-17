@@ -85,6 +85,7 @@ exports.Scene = class Scene
 
     @director.bind 'resume', =>
       @paused = false
+      @pauseMenu.kill()
 
     @director.bind 'draw', (display) =>
       @draw(display)
@@ -143,7 +144,9 @@ exports.Scene = class Scene
  
   pause: ->
     if not @paused
-      @modalDialogs.add(new menu.Menu(@director, @director.getViewport(), 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
+      @pauseMenu = new menu.Menu(@director, @director.getViewport())
+      @pauseMenu.build('Paused', [['Back to Game', 'resume'], ['Quit Game', 'quit']])
+      @modalDialogs.add(@pauseMenu)
       @paused = true
 
   update: (msDuration) ->
