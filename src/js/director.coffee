@@ -32,6 +32,9 @@ exports.Director = class Director extends event.Event
     @sceneStack = []
     @live = false
     gamejs.time.fpsCallback(@tick, this, 30)
+    gamejs.time.fpsCallback(->
+      @trigger('time')
+    , this, 1)
 
   tick: (msDuration) ->
     if @live

@@ -34,8 +34,13 @@ exports.MobileDisplay = class MobileDisplay
                             width, height)
     el$ = @director.createHTMLElement(@rect.inflate(-4, -4))
     el$.attr({id: 'game-mobile'})
-    @view = new MobileView({el: el$})
+    @model = new MobileModel();
+    @view = new MobileView({el: el$, model: @model})
+
     @view.render()
+
+  setTime: (time) ->
+    @model.set({time: time})
 
   start: ->
     @director.bind 'mousedown', @click
@@ -55,9 +60,16 @@ exports.MobileDisplay = class MobileDisplay
   draw: (display) ->
 
 
+MobileModel = Backbone.Model.extend({})
+
+
 # TODO contact app, sms app, browser app
 MobileView = Backbone.View.extend
   template: _.template($('#mobile-device-tmpl').html())
+
+  initialize: ->
+    @model.bind('change:time', @updateTime, @)
+
   events:
     'click h1': 'click'
     'click .bar': 'toggleNotifications'
@@ -67,6 +79,20 @@ MobileView = Backbone.View.extend
 
   toggleNotifications: =>
     @.$('.status-bar .notifications').toggleClass('collapsed')
+
+  updateTime: (model, val) ->
+    h = val.getHours()
+    m = val.getMinutes()
+    s = val.getSeconds()
+
+    if m < 10
+      m = '0' + m
+
+    if s < 10
+      s = '0' + s
+
+    displayTime = h + ':' + m + ':' + s
+    @.$('.status-bar .time').text(displayTime)
 
   render: ->
     @$el.html(@template())

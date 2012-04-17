@@ -30,7 +30,7 @@ mobile = require 'mobile'
 
 
 exports.Scene = class Scene
-  constructor: (@director, worldSize) ->
+  constructor: (@director, worldSize, @gameTime=0) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -66,6 +66,9 @@ exports.Scene = class Scene
   getDirector: ->
     @director
 
+  getTime: ->
+    new Date(@gameTime*1000 + 0x9fffffff*1000)
+
   getEntityBuilder: (entityType, spritesheets) ->
     group = switch entityType
       when 'npcs' then @characters
@@ -85,6 +88,11 @@ exports.Scene = class Scene
 
     @director.bind 'draw', (display) =>
       @draw(display)
+
+    @director.bind 'time', =>
+      if not @paused
+        @gameTime++
+        @mobileDisplay.setTime(@getTime())
 
     @director.bind 'mousedown', (event) =>
       switch event.button
@@ -185,5 +193,6 @@ exports.Scene = class Scene
     rect.move(-@viewportRect.left, -@viewportRect.top)
 
   loadPortal: (portal) ->
-    newScene = new loader.Loader(@director, portal.destination)
+    @paused = true
+    newScene = new loader.Loader(@director, portal.destination, @gameTime)
     @director.replaceScene(newScene)
