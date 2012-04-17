@@ -69,6 +69,9 @@ exports.Scene = class Scene
   getTime: ->
     new Date(@gameTime*1000 + 0x9fffffff*1000)
 
+  getPointerPosition: ->
+    @toScreenRect(@director.getPointerPosition())
+
   getEntityBuilder: (entityType, spritesheets) ->
     group = switch entityType
       when 'npcs' then @characters
