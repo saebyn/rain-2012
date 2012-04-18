@@ -23,10 +23,11 @@
 
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
-entity = require 'entity'
 loader = require 'loader'
 menu = require 'menu'
 mobile = require 'mobile'
+
+EntityBuilder = require('entitybuilder').EntityBuilder
 
 
 exports.Scene = class Scene
@@ -54,6 +55,9 @@ exports.Scene = class Scene
     # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
+    # attacks are things that move and hit things
+    @attacks = new gamejs.sprite.Group()
+
     @worldWidth = worldSize[0]
     @worldHeight = worldSize[1]
 
@@ -77,7 +81,7 @@ exports.Scene = class Scene
       when 'portals' then @portals
       when 'player' then @characters
 
-    return new entity.EntityBuilder(@, group, entityType, spritesheets)
+    return new EntityBuilder(@, group, entityType, spritesheets)
 
   start: ->
     @director.bind 'update', (msDuration) =>
@@ -103,7 +107,8 @@ exports.Scene = class Scene
       switch event.key
         when gamejs.event.K_a then @playerMove = -> @player.left()
         when gamejs.event.K_d then @playerMove = -> @player.right()
-        when gamejs.event.K_SPACE then @player.jump()
+        when gamejs.event.K_w then @player.jump()
+        when gamejs.event.K_SPACE then @player.attack()
         when gamejs.event.K_SHIFT then @player.startSprint()
 
     @director.bind 'keyup', (event) =>
@@ -178,6 +183,7 @@ exports.Scene = class Scene
     # character capabilities and location of solids needs to be passed in
     new pathfinding.Map(character, this)
 
+  # Center the viewport on the given world position
   center: (worldPosition) ->
     @viewportRect.center = worldPosition
     if @viewportRect.bottom > @worldHeight
@@ -188,6 +194,9 @@ exports.Scene = class Scene
       
     if @viewportRect.right > @worldWidth
       @viewportRect.right = @worldWidth
+
+  addAttack: (name, rect, facing) ->
+    console.log arguments
 
   toWorldRect: (rect) ->
     # convert screen coordinates to world coordinates
