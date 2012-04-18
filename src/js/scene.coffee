@@ -69,9 +69,6 @@ exports.Scene = class Scene
   getTime: ->
     new Date(@gameTime*1000 + 0x9fffffff*1000)
 
-  getPointerPosition: ->
-    @toScreenRect(@director.getPointerPosition())
-
   getEntityBuilder: (entityType, spritesheets) ->
     group = switch entityType
       when 'npcs' then @characters
@@ -117,6 +114,8 @@ exports.Scene = class Scene
         when gamejs.event.K_SHIFT then @player.stopSprint()
 
     @mobileDisplay.start()
+
+    (character.initialize() for character in @characters.sprites() when character.initialize?)
 
   stop: ->
     # XXX its unsafe to rely on this scene unbinding its own events

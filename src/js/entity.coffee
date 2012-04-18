@@ -254,9 +254,6 @@ class Character extends Entity
     @collided = false
     @looking = ''
 
-    minSize = Math.min(rect.width, rect.height)
-    @meleeBox = new gamejs.Rect(0, 0, minSize, minSize)
-
     @baseSpeed = 0.1
     @speedIncrement = 0.2
     @maxSpeed = 1.2
@@ -305,22 +302,8 @@ class Character extends Entity
   clearYMomentum: ->
     @direction[1] = 0.0
 
-  # TODO remove this method once done with testing
-  draw: (display) ->
-    super(display)
-    # draw melee box relative to the current recta
-    meleeBox = @meleeBox.move(@rect)
-    gamejs.draw.rect(display, '#ff0000', meleeBox, 1)
-
   update: (msDuration) ->
     super(msDuration)
-    #
-    #console.log @scene.getPointerPosition()
-    # TODO orient melee box towards mouse location
-    # draw line from center of @rect to mouse location
-    # find point where line intersects @rect perimeter
-    # center melee box on that point
-
     @frameKey = 'default'
 
     if Math.abs(@direction[0]) > 0
@@ -418,9 +401,7 @@ class NPCharacter extends Character
 
   chooseDialogOption: (option) ->
     optionObj = @dialogResponse.choose(option)
-    console.log optionObj
     @dialogResponse = optionObj.getResponse()
-    console.log @dialogResponse, @dialogResponse?
     if @dialogResponse
       @updateDialog()
     else

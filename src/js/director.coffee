@@ -31,7 +31,6 @@ exports.Director = class Director extends event.Event
     @activeScene = false
     @sceneStack = []
     @live = false
-    @pointerPosition = [0, 0]
     gamejs.time.fpsCallback(@tick, this, 30)
     gamejs.time.fpsCallback(->
       @trigger('time')
@@ -42,7 +41,7 @@ exports.Director = class Director extends event.Event
       gamejs.event.get().forEach (event) =>
         switch event.type
           when gamejs.event.MOUSE_DOWN then @trigger('mousedown', event)
-          when gamejs.event.MOUSE_MOTION then @updatePointerPosition(event.pos)
+          when gamejs.event.MOUSE_MOTION then @trigger('mousemove', event.pos)
           when gamejs.event.MOUSE_UP then @trigger('mouseup', event)
           when gamejs.event.KEY_DOWN then @trigger('keydown', event)
           when gamejs.event.KEY_UP then @trigger('keyup', event)
@@ -80,12 +79,6 @@ exports.Director = class Director extends event.Event
 
     @activeScene = scene
     @activeScene.start()
-
-  updatePointerPosition: (position) ->
-    @pointerPosition = position
-
-  getPointerPosition: ->
-    @pointerPosition
 
   getScene: ->
     @activeScene
