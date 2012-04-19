@@ -33,17 +33,28 @@ drawRepeat = (source, dest, repeatX, repeatY) ->
       dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
 
 
-exports.getSpriteImage = getSpriteImage = (rect, sheetImage, spriteDef, frame=0) ->
+getSpriteImage = (rect, sheetImage, spriteDef, frame=0) ->
   image = new gamejs.Surface(rect)
 
-  x = spriteDef.x
-  y = spriteDef.y
+  if spriteDef.direction == '-x'
+    x = spriteDef.width * (spriteDef.frames - 1)
+    y = spriteDef.y
+  else if spriteDef.direction == '-y'
+    x = spriteDef.x
+    y = spriteDef.height * (spriteDef.frames - 1)
+  else
+    x = spriteDef.x
+    y = spriteDef.y
 
   if frame != 0
     if spriteDef.direction == 'x'
       x += spriteDef.width * frame
     else if spriteDef.direction == 'y'
       y += spriteDef.height * frame
+    else if spriteDef.direction == '-x'
+      x -= spriteDef.width * frame
+    else if spriteDef.direction == '-y'
+      y -= spriteDef.height * frame
 
   srcArea = new gamejs.Rect([x, y],
                             [spriteDef.width, spriteDef.height])
@@ -57,7 +68,7 @@ exports.getSpriteImage = getSpriteImage = (rect, sheetImage, spriteDef, frame=0)
   image
 
 
-exports.loadAnimation = (spriteDef, entity, sheetImage, spec) ->
+loadAnimation = (spriteDef, entity, sheetImage, spec) ->
   if spriteDef.frames?
     entity.updateAnimation = (msDuration) =>
       entity.progressFrame(msDuration, spriteDef)
@@ -65,7 +76,7 @@ exports.loadAnimation = (spriteDef, entity, sheetImage, spec) ->
       applyImageSpec(entity, updatedImage, spec)
 
 
-exports.applyImageSpec = applyImageSpec = (entity, rawImage, spec) ->
+applyImageSpec = (entity, rawImage, spec) ->
   if spec and spec.repeat? and spec.repeat != 'none'
     if not entity.image?
       entity.image = new gamejs.Surface(entity.rect)
@@ -79,10 +90,40 @@ exports.applyImageSpec = applyImageSpec = (entity, rawImage, spec) ->
     entity.image = rawImage
 
 
+loadSpriteFromSheet = (name, rect, spritesheets) ->
+  [spritesheetName, spriteName] = name.split('.')
+
+  # load the spritesheet image
+  sheetImage = gamejs.image.load(spritesheets[spritesheetName].image)
+
+  spriteDef = spritesheets[spritesheetName].sprites[spriteName]
+  image = getSpriteImage(rect, sheetImage, spriteDef)   
+  [image, sheetImage, spriteDef]
+
+
+exports.setupSprite = setupSprite = (entity, spriteName, spritesheets, spec=false) ->
+    [rawImage, sheetImage, spriteDef] = loadSpriteFromSheet(spriteName, entity.rect, spritesheets)
+    applyImageSpec(entity, rawImage, spec)
+    loadAnimation(spriteDef, entity, sheetImage, spec)
+
+
+exports.loadSpriteSpec = (entity, spec, spritesheets) ->
+  if spec.image?
+    rawImage = gamejs.image.load(spec.image)
+    applyImageSpec(entity, rawImage, spec)
+  else if spec.sprite?
+    setupSprite(entity, spec.sprite, spritesheets, spec)
+  else if spec.color?
+    entity.image = new gamejs.Surface(entity.rect)
+    entity.image.fill(spec.color)
+
+
 exports.Sprite = class Sprite extends gamejs.sprite.Sprite
-  constructor: (@scene, rect) ->
+  constructor: (@scene, rect=false) ->
     super()
-    @worldRect = @scene.toWorldRect(rect)
+    if rect
+      @worldRect = @scene.toWorldRect(rect)
+
     @player = false
 
     rectGet = ->

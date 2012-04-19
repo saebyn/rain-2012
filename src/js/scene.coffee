@@ -31,7 +31,7 @@ EntityBuilder = require('entitybuilder').EntityBuilder
 
 
 exports.Scene = class Scene
-  constructor: (@director, worldSize, @gameTime=0) ->
+  constructor: (@director, worldSize, @spritesheets, @gameTime=0) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -73,7 +73,7 @@ exports.Scene = class Scene
   getTime: ->
     new Date(@gameTime*1000 + 0x9fffffff*1000)
 
-  getEntityBuilder: (entityType, spritesheets) ->
+  getEntityBuilder: (entityType) ->
     group = switch entityType
       when 'npcs' then @characters
       when 'solids' then @solids
@@ -81,7 +81,7 @@ exports.Scene = class Scene
       when 'portals' then @portals
       when 'player' then @characters
 
-    return new EntityBuilder(@, group, entityType, spritesheets)
+    return new EntityBuilder(@, group, entityType, @spritesheets)
 
   start: ->
     @director.bind 'update', (msDuration) =>
@@ -108,7 +108,7 @@ exports.Scene = class Scene
         when gamejs.event.K_a then @playerMove = -> @player.left()
         when gamejs.event.K_d then @playerMove = -> @player.right()
         when gamejs.event.K_w then @player.jump()
-        when gamejs.event.K_SPACE then @player.attack()
+        when gamejs.event.K_SPACE then @attack()
         when gamejs.event.K_SHIFT then @player.startSprint()
 
     @director.bind 'keyup', (event) =>
@@ -125,6 +125,11 @@ exports.Scene = class Scene
   stop: ->
     # XXX its unsafe to rely on this scene unbinding its own events
     @mobileDisplay.stop()
+
+  attack: _.debounce(->
+    @player.attack()
+  , 300, true)
+
 
   leftClick: (point) ->
     # check for any modal dialogs in the modals group and click on the last one
@@ -201,10 +206,6 @@ exports.Scene = class Scene
       
     if @viewportRect.right > @worldWidth
       @viewportRect.right = @worldWidth
-
-  addAttack: (attack) ->
-    attack.setScene(@)
-    @attacks.add(attack)
 
   toWorldRect: (rect) ->
     # convert screen coordinates to world coordinates

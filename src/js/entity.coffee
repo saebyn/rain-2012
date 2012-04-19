@@ -95,8 +95,11 @@ class Character extends Entity
     if @looking == ''
       @looking = @lastFacing
 
-    attack = attacks.buildAttack('melee', @rect, @looking)
-    @scene.addAttack(attack)
+    @isAttackingTimer = 300
+    attack = attacks.buildAttack(@scene, @, 'melee', @rect, @looking)
+
+  hit: (hp) ->
+    console.log 'lost hp', @, hp
 
   handleCollisions: (movement) ->
     # if applying movement to the rect results in no collisions, return movement
@@ -139,7 +142,6 @@ class Character extends Entity
     @direction[1] = 0.0
 
   update: (msDuration) ->
-    super(msDuration)
     @frameKey = 'default'
 
     if Math.abs(@direction[0]) > 0
@@ -151,11 +153,16 @@ class Character extends Entity
     if @direction[1] < 0
       @frameKey = 'jumping'
 
+    if @isAttackingTimer > 0
+      @frameKey = 'hitting'
+      @isAttackingTimer -= msDuration
+
     if @looking == 'right'
       @frameKey += '-right'
     else if @looking == 'left'
       @frameKey += '-left'
 
+    super(msDuration)
     movement = $v.multiply(@direction, msDuration)
     movement = @handleCollisions(movement)
     @worldRect.moveIp(movement)

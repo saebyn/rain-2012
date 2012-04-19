@@ -22,33 +22,51 @@
 
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
-Sprite = require('sprite').Sprite
+sprite = require 'sprite'
 
 
 # make a sprite (possibly animated) that hurts (possibly not the creating entity) and might move, or be drawn (arc)
 
-exports.buildAttack = (name, rect, facing) ->
+exports.buildAttack = (scene, source, name, rect, facing) ->
   if facing == 'right'
     vector = [1, 0]
+    attackSpriteName = 'meleeAttack1Right'
   else if facing == 'left'
     vector = [-1, 0]
+    attackSpriteName = 'meleeAttack1Left'
   else
-    vector = [0, 0]  # TODO something?
+    return
 
-  new MeleeAttack(rect, vector)
+  # move rect towards vector
+  rect = rect.move($v.multiply(vector, rect.width / 2))
+
+  attack = new MeleeAttack(scene, rect, source)
+  sprite.loadSpriteSpec(attack, {sprite: 'base.' + attackSpriteName}, scene.spritesheets)
+  scene.attacks.add(attack)
 
 
-class MeleeAttack extends Sprite
-  # here rect should be in world coordinates
-  constructor: (rect, @vector) ->
-    super()
-    @rect = rect
+class MeleeAttack extends sprite.Sprite
+  constructor: (scene, rect, @source) ->
+    super(scene, rect)
+    @startPositionX = @worldRect.left - @source.worldRect.left
+    @startPositionY = @worldRect.top - @source.worldRect.top
+    @lifetime = 200  # how long the attack lasts
+    @hp = 5  # how many hit points to take
 
-  setScene: (@scene) ->
+    # ignore these entities for collision purposes
+    @hasHit = [@scene.getPlayer()]
 
   update: (ms) ->
     super(ms)
+    @worldRect.left = @startPositionX + @source.worldRect.left
+    @worldRect.top = @startPositionY + @source.worldRect.top
 
-  draw: (surface) ->
-    # convert our world coordinate rect into screen coordinates
-    rect = @scene.toScreenRect(@rect)
+    # collide! with @scene.characters
+    # hit! what we collide with
+    hits = (hit for hit in gamejs.sprite.spriteCollide(@, @scene.characters, false) when hit not in @hasHit)
+    @hasHit = @hasHit.concat(hits)
+    hit.hit(@hp) for hit in hits
+
+    @lifetime -= ms
+    if @lifetime <= 0
+      @kill()

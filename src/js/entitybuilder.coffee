@@ -32,7 +32,7 @@ exports.EntityBuilder = class EntityBuilder
 
   newPlayer: (rect, spriteName) ->
     player = new entities.Player(@scene, rect)
-    @setupSprite(player, spriteName)
+    sprite.setupSprite(player, spriteName, @spritesheets)
     @group.add(player)
     @scene.player = player
     player
@@ -50,7 +50,7 @@ exports.EntityBuilder = class EntityBuilder
       when 'portals' then new entities.Portal(@scene, rect, destination)
 
     if @type != 'portals'
-      @loadSpriteSpec(entity, parameters)
+      sprite.loadSpriteSpec(entity, parameters, @spritesheets)
 
     @group.add(entity)
 
@@ -65,28 +65,3 @@ exports.EntityBuilder = class EntityBuilder
           0
 
     entity
-
-  loadSpriteFromSheet: (name, rect) ->
-    [spritesheetName, spriteName] = name.split('.')
-
-    # load the spritesheet image
-    sheetImage = gamejs.image.load(@spritesheets[spritesheetName].image)
-
-    spriteDef = @spritesheets[spritesheetName].sprites[spriteName]
-    image = sprite.getSpriteImage(rect, sheetImage, spriteDef)   
-    [image, sheetImage, spriteDef]
-
-  setupSprite: (entity, spriteName, spec=false) ->
-      [rawImage, sheetImage, spriteDef] = @loadSpriteFromSheet(spriteName, entity.rect)
-      sprite.applyImageSpec(entity, rawImage, spec)
-      sprite.loadAnimation(spriteDef, entity, sheetImage, spec)
-
-  loadSpriteSpec: (entity, spec) ->
-    if spec.image?
-      rawImage = gamejs.image.load(spec.image)
-      sprite.applyImageSpec(entity, rawImage, spec)
-    else if spec.sprite?
-      @setupSprite(entity, spec.sprite, spec)
-    else if spec.color?
-      entity.image = new gamejs.Surface(entity.rect)
-      entity.image.fill(spec.color)
