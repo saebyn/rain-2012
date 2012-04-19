@@ -23,8 +23,11 @@
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
+
 fsm = require 'fsm'
 menu = require 'menu'
+
+Sprite = require('sprite').Sprite
 
 attacks = require 'attacks'
 
@@ -35,34 +38,7 @@ threshold = (value, level, min = 0.0) ->
   if Math.abs(value) < level then min else value
 
 
-exports.Entity = class Entity extends gamejs.sprite.Sprite
-  constructor: (@scene, rect) ->
-    super()
-    @worldRect = @scene.toWorldRect(rect)
-    @player = false
-
-    rectGet = ->
-      @scene.toScreenRect(@worldRect)
-
-    rectSet = (rect) ->
-      @worldRect = @scene.toWorldRect(rect)
-      return
-
-    positionGet = ->
-      @worldRect.topleft
-
-    positionSet = (point) ->
-      @worldRect.topleft = point
-
-    $o.accessor(this, 'rect', rectGet, rectSet)
-    $o.accessor(this, 'position', positionGet, positionSet)
-
-  update: (msDuration) ->
-    if @updateAnimation?
-      @updateAnimation(msDuration)
-
-  getScene: ->
-    @scene
+exports.Entity = class Entity extends Sprite
 
 
 exports.BackgroundSprite = class BackgroundSprite extends Entity
@@ -119,7 +95,8 @@ class Character extends Entity
     if @looking == ''
       @looking = @lastFacing
 
-    @scene.addAttack('melee', @rect, @looking)
+    attack = attacks.buildAttack('melee', @rect, @looking)
+    @scene.addAttack(attack)
 
   handleCollisions: (movement) ->
     # if applying movement to the rect results in no collisions, return movement
@@ -262,6 +239,7 @@ exports.NPCharacter = class NPCharacter extends Character
     @dialogMenu.kill()
     @dialogMenu = null
     @dialogResponse = null
+    @scene.paused = false
 
   chooseDialogOption: (option) ->
     optionObj = @dialogResponse.choose(option)

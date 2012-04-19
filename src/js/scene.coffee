@@ -115,7 +115,7 @@ exports.Scene = class Scene
       switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
-        when gamejs.event.K_ESC then @pause()
+        when gamejs.event.K_ESC then @togglePause()
         when gamejs.event.K_SHIFT then @player.stopSprint()
 
     @mobileDisplay.start()
@@ -144,17 +144,22 @@ exports.Scene = class Scene
     # launch dialog subsys for first clicked NPC
     for char in charactersClicked
       if not char.player
+        @paused = true
         dialogMenu = char.startDialog()  # tell NPC that we want to talk
         # add dialogMenu to overlay
         @modalDialogs.add(dialogMenu)
         break
  
-  pause: ->
-    if not @paused
+  togglePause: _.debounce(->
+    if @paused
+      @pauseMenu.kill()
+      @paused = false
+    else
       @pauseMenu = new menu.Menu(@director, @director.getViewport())
       @pauseMenu.build('Paused', [['Back to Game', 'resume'], ['Quit Game', 'quit']])
       @modalDialogs.add(@pauseMenu)
       @paused = true
+  , 200, true)
 
   update: (msDuration) ->
     # just let it skip a bit if we got slowed down that much
@@ -164,6 +169,7 @@ exports.Scene = class Scene
     if not @paused
       @playerMove()
       @characters.update(msDuration)
+      @attacks.update(msDuration)
       @mobileDisplay.update(msDuration)
       @solids.update(msDuration)
 
@@ -173,6 +179,7 @@ exports.Scene = class Scene
     @solids.draw(display)
     @items.draw(display)
     @characters.draw(display)
+    @attacks.draw(display)
     @mobileDisplay.draw(display)
 
     if @modalDialogs.sprites().length > 0
@@ -195,8 +202,9 @@ exports.Scene = class Scene
     if @viewportRect.right > @worldWidth
       @viewportRect.right = @worldWidth
 
-  addAttack: (name, rect, facing) ->
-    console.log arguments
+  addAttack: (attack) ->
+    attack.setScene(@)
+    @attacks.add(attack)
 
   toWorldRect: (rect) ->
     # convert screen coordinates to world coordinates
