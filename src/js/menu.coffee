@@ -23,10 +23,12 @@
 gamejs = require 'gamejs'
 
 exports.Menu = class Menu extends gamejs.sprite.Sprite
-  constructor: (@eventSink, @viewport, title, options) ->
+  constructor: (@eventSink, @viewport) ->
     super()
     @titleFont = new gamejs.font.Font('36px monospace')
     @buttonFont = new gamejs.font.Font('36px monospace')
+
+  build: (title, options) ->
     # create pause menu image, define button rects
     @buttons = @createButtons(options)
     # -> {optionName: {rect: Rect(), image: Surface()}, ...}
@@ -38,23 +40,25 @@ exports.Menu = class Menu extends gamejs.sprite.Sprite
     positionRect.center = @viewport.center
     return positionRect
 
-  createButton: (name, text, x, y, padding) ->
+  createButton: (type, text, x, y, padding) ->
     image = @buttonFont.render(text, 'white')
     imageSize = image.getSize()
     buttonImage = new gamejs.Surface([imageSize[0] + padding * 2, imageSize[1] + padding * 2])
     buttonImage.fill('#333333')
     buttonImage.blit(image, [padding, padding])
     rect = new gamejs.Rect([x, y], buttonImage.getSize())
-    {rect: rect, image: buttonImage}
+    {rect: rect, image: buttonImage, type: type}
   
   createButtons: (options) ->
     buttons = {}
     BUTTON_MARGIN = 15
     BUTTON_PADDING = 5
     x = y = BUTTON_MARGIN
-    for name, text of options
-      buttons[name] = @createButton(name, text, x, y, BUTTON_PADDING)
-      y += buttons[name].rect.height + BUTTON_MARGIN
+    for option in options
+      text = option[0]
+      type = option[1] || 'dialog'
+      buttons[text] = @createButton(type, text, x, y, BUTTON_PADDING)
+      y += buttons[text].rect.height + BUTTON_MARGIN
 
     return buttons
 
@@ -109,17 +113,18 @@ exports.Menu = class Menu extends gamejs.sprite.Sprite
     # subtract @rect.topleft from point
     point = [point[0] - @rect.left, point[1] - @rect.top]
     # search each @buttons .rect for collision
-    for name, button of @buttons
+    for text, button of @buttons
       if button.rect.collidePoint(point)
-        return name
+        return [text, button.type]
 
     false
 
-  click: (point) ->
-    button = @findButton(point)
-    if button
-      @eventSink.trigger(button)
-      @kill()
+  click: _.debounce((point) ->
+    match = @findButton(point)
+    if match
+      [name, type] = match
+      @eventSink.trigger(type, name)
+  , 500, true)
 
 
 # TODO find positioning for dialog (ideally above npc, else centered on screen)

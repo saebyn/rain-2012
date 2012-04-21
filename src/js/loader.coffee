@@ -29,7 +29,7 @@ scene = require 'scene'
 # director to it.
 
 exports.Loader = class Loader
-  constructor: (@director, levelFilename) ->
+  constructor: (@director, levelFilename, @gameTime=0) ->
     @spritesheets = {}
     @level = gamejs.http.load(levelFilename)
     @loaded = false
@@ -79,15 +79,20 @@ exports.Loader = class Loader
     (@getLoadProgress() * 100) + '%'
 
   update: (msDuration) ->
-     if @loaded
-       newScene = new scene.Scene(@director, @level.size, @level.playerStart)
-       for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
-         if @level[entityType]?
-           entityBuilder = newScene.getEntityBuilder(entityType, @spritesheets)
-           for entityName, entityDef of @level[entityType]
-             entityBuilder.newEntity(entityDef)
+    if @loaded
+      newScene = new scene.Scene(@director, @level.size, @spritesheets, @gameTime)
+      for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
+        if @level[entityType]?
+          entityBuilder = newScene.getEntityBuilder(entityType)
+          for entityName, entityDef of @level[entityType]
+            entityBuilder.newEntity(entityDef)
 
-       @director.replaceScene(newScene)
+      playerSize = [64, 128]
+      playerRect = newScene.toScreenRect(new gamejs.Rect(@level.playerStart, playerSize))
+      entityBuilder = newScene.getEntityBuilder('player')
+      entityBuilder.newPlayer(playerRect, @level.playerSprite)
+
+      @director.replaceScene(newScene)
 
   draw: (display) ->
     # draw progress
@@ -95,8 +100,6 @@ exports.Loader = class Loader
     font = new gamejs.font.Font('24px monospace')
     # render text - this returns a surface with the text written on it.
     textSurface = font.render("loading... " + @progress())
-
-    display.clear()
 
     x = display.getSize()[0] / 2 - 100
     y = 100

@@ -23,119 +23,39 @@
 gamejs = require 'gamejs'
 $v = require 'gamejs/utils/vectors'
 $o = require 'gamejs/utils/objects'
+
 fsm = require 'fsm'
 menu = require 'menu'
+
+Sprite = require('sprite').Sprite
+
+attacks = require 'attacks'
+
+npcDialog = require 'dialog/test'
 
 
 threshold = (value, level, min = 0.0) ->
   if Math.abs(value) < level then min else value
 
 
-exports.EntityBuilder = class EntityBuilder
-  constructor: (@scene, @group, @type, @spritesheets) ->
-
-  newEntity: (parameters={}) ->
-    rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
-    behavior = parameters.behavior or []
-    distance = parameters.distance or 0
-    destination = parameters.destination or ''
-
-    entity = switch @type
-      when 'npcs' then new NPCharacter(@scene, rect, behavior)
-      when 'solids' then new Entity(@scene, rect)
-      when 'backgrounds' then new BackgroundSprite(@scene, rect, distance)
-      when 'portals' then new Portal(@scene, rect, destination)
-
-    @loadSpriteSpec(entity, parameters)
-    @group.add(entity)
-    entity
-
-  drawRepeat: (source, dest, repeatX, repeatY) ->
-    sourceSize = source.getSize()
-    for x in [0...repeatX]
-      for y in [0...repeatY]
-        dest.blit(source, [x * sourceSize[0], y * sourceSize[1]])
-
-  applyImageSpec: (sprite, rawImage, spec) ->
-      if spec.repeat? and spec.repeat != 'none'
-        sprite.image = new gamejs.Surface(sprite.rect)
-        imageSize = rawImage.getSize()
-        switch spec.repeat
-          when 'x' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], 1)
-          when 'y' then @drawRepeat(rawImage, sprite.image, 1, sprite.rect.height / imageSize[1])
-          when 'xy' then @drawRepeat(rawImage, sprite.image, sprite.rect.width / imageSize[0], sprite.rect.height / imageSize[1])
-      else
-        sprite.image = rawImage
-
-  loadSpriteFromSheet: (name, rect) ->
-    [spritesheetName, spriteName] = name.split('.')
-    image = new gamejs.Surface(rect)
-
-    # load the spritesheet image
-    sheetImage = gamejs.image.load(@spritesheets[spritesheetName].image)
-
-    spriteDef = @spritesheets[spritesheetName].sprites[spriteName]
-    # PROBLEM: FIXME the source area of the spritesheet isn't dealt with correctly by gamejs
-    srcArea = new gamejs.Rect([spriteDef.x, spriteDef.y],
-                              [spriteDef.width, spriteDef.height])
-
-    # extract the specific sprite from the sheet
-    image.blit(sheetImage, [0, 0], srcArea)
-    image
-
-  loadSpriteSpec: (sprite, spec) ->
-    if spec.image?
-      rawImage = gamejs.image.load(spec.image)
-      @applyImageSpec(sprite, rawImage, spec)
-    else if spec.sprite?
-      rawImage = @loadSpriteFromSheet(spec.sprite, sprite.rect)
-      @applyImageSpec(sprite, rawImage, spec)
-    else if spec.color?
-      sprite.image = new gamejs.Surface(sprite.rect)
-      sprite.image.fill(spec.color)
+exports.Entity = class Entity extends Sprite
 
 
-class Entity extends gamejs.sprite.Sprite
-  constructor: (@scene, rect) ->
-    super()
-    @worldRect = @scene.toWorldRect(rect)
-    @player = false
-
-    rectGet = ->
-      @scene.toScreenRect(@worldRect)
-
-    rectSet = (rect) ->
-      @worldRect = @scene.toWorldRect(rect)
-      return
-
-    positionGet = ->
-      @worldRect.topleft
-
-    positionSet = (point) ->
-      @worldRect.topleft = point
-
-    $o.accessor(this, 'rect', rectGet, rectSet)
-    $o.accessor(this, 'position', positionGet, positionSet)
-
-  getScene: ->
-    @scene
-
-
-class BackgroundSprite extends Entity
+exports.BackgroundSprite = class BackgroundSprite extends Entity
   constructor: (scene, rect, @distance) ->
     super(scene, rect)
 
     rectGet = ->
-      newRect = @scene.toScreenRect(@worldRect)
       if @distance == 0
-        return newRect
+        return @scene.toScreenRect(@worldRect)
+
       playerRect = @scene.player.rect
-      # get x distance from this rect to player
-      dx = newRect.x - playerRect.x
+      # get x distance from player to this rect
+      dx = @worldRect.center[0] - playerRect.center[0]
       # calculate offset based on @distance
-      dx *= @distance / 500.0
       # apply offset to rect
-      newRect.move(dx, 0)
+      offset = dx * (@distance / (12000.0))
+      @scene.toScreenRect(@worldRect.move(-offset, 0))
 
     rectSet = (rect) ->
       @worldRect = @scene.toWorldRect(rect)
@@ -144,17 +64,23 @@ class BackgroundSprite extends Entity
     $o.accessor(this, 'rect', rectGet, rectSet)
 
 
-class Portal extends Entity
+exports.Portal = class Portal extends Entity
   constructor: (scene, rect, @destination) ->
     super(scene, rect)
+    @image = new gamejs.Surface(rect)
+    @image.fill("#ffaaaa")
+    @image.setAlpha(0.1)
 
 
 class Character extends Entity
-  constructor: (scene, rect) ->
+  constructor: (scene, rect, @life=100) ->
     super(scene, rect)
     @direction = [0.0, 0.0]  # our current movement vector
 
     @landed = false
+    @collided = false
+    @looking = ''
+    @lastFacing = 'right'
 
     @baseSpeed = 0.1
     @speedIncrement = 0.2
@@ -164,9 +90,23 @@ class Character extends Entity
     @gravitySpeed = 0.4
     @maxGravitySpeed = 1.0
 
+  # attack the direction we're facing
+  attack: ->
+    if @looking == ''
+      @looking = @lastFacing
+
+    @isAttackingTimer = 300
+    attack = attacks.buildAttack(@scene, @, 'melee', @rect, @looking)
+
+  hit: (hp) ->
+    @life -= hp
+    if @life <= 0
+      @kill()
+
   handleCollisions: (movement) ->
     # if applying movement to the rect results in no collisions, return movement
     rect = @worldRect.move(movement)
+    @collided = false
     collisions = (sprite for sprite in @scene.solids.sprites() when sprite.worldRect.collideRect(rect))
     # if there are any collisions, handle them
     for sprite in collisions
@@ -176,9 +116,11 @@ class Character extends Entity
 
         if movement[0] < 0 and rect.left <= sprite.worldRect.right and (rect.left - sprite.worldRect.right) > movement[0]
           rect.left = sprite.worldRect.right + 1
+          @collided = true
           @clearXMomentum()
         else if movement[0] > 0 and rect.right >= sprite.worldRect.left and (rect.right - sprite.worldRect.left) < movement[0]
           rect.right = sprite.worldRect.left - 1
+          @collided = true
           @clearXMomentum()
 
       if rect.collideRect(sprite.worldRect)  # because we may no longer collide
@@ -202,6 +144,24 @@ class Character extends Entity
     @direction[1] = 0.0
 
   update: (msDuration) ->
+    @frameKeys = []
+
+    if @isAttackingTimer > 0
+      @frameKeys.push('hitting')
+      @isAttackingTimer -= msDuration
+    else if @direction[1] < 0
+      @frameKeys.push('jumping')
+    else if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
+      @frameKeys.push('running')
+    else if Math.abs(@direction[0]) > 0
+      @frameKeys.push('walking')
+
+    if @looking == 'right'
+      @frameKeys.push('right')
+    else if @looking == 'left'
+      @frameKeys.push('left')
+
+    super(msDuration)
     movement = $v.multiply(@direction, msDuration)
     movement = @handleCollisions(movement)
     @worldRect.moveIp(movement)
@@ -209,7 +169,6 @@ class Character extends Entity
     # decrease direction vector based on movement
     @direction[0] = threshold(@direction[0] / 2.0, @baseSpeed)
     @direction[1] = threshold(@direction[1] / 2.0, @baseSpeed)
-
 
     # clean up the coordinates
     @worldRect.top = (0.5 + @worldRect.top) | 0
@@ -230,27 +189,77 @@ class Character extends Entity
     else if x > @maxSpeed
       x = @maxSpeed
 
+    if x < 0
+      @looking = 'left'
+    else if x > 0
+      @looking = 'right'
+    else
+      if @looking != ''
+        @lastFacing = @looking
+
+      @looking = ''
+
     y += @direction[1]
 
     @direction = [x, Math.min(@maxGravitySpeed, y)]
 
 
-class NPCharacter extends Character
-  constructor: (scene, rect, behavior) ->
+exports.NPCharacter = class NPCharacter extends Character
+  constructor: (scene, rect, dialogName, behavior) ->
     super(scene, rect)
     @behavior = new fsm.FSM(behavior, @behaviorDispatch)
     @behavior.input('start')
+    if dialogName
+      # `dialog` is the dialog object selected for this NPC
+      # this should not be changed after being set
+      @dialog = new npcDialog.dialogs[dialogName](
+        player: @scene.getPlayer(),
+        self: @
+      )
+      # `dialogResponse` is the current response given to the player
+      # it should be null when the NPC isn't talking to the player
+      @dialogResponse = null
+
+  updateDialog: ->
+    # extract dialog options
+    options = ([option] for option in @dialogResponse.getOptions())
+    # add dialog exit option
+    options.push(['Bye', 'exitdialog'])
+    if not @dialogMenu?
+      @dialogMenu = new menu.DialogMenu(@, @scene.getDirector().getViewport())
+
+    @dialogMenu.build(@dialogResponse.text, options)
+    @dialogMenu
 
   startDialog: ->
-    @behavior.input('dialog')
-    # construct and return dialog menu
-    # TODO extract dialog options from somewhere...
-    # maybe have dialogs stored in the scene? (as a separate entity type like portals, solids, etc)
-    #   needs: text, options={optionText: fsmInputToken, ...}
-    # maybe have NPC entities define the relationship between fsm states and dialog entries?
-    new menu.DialogMenu(@, @scene.getDirector().getViewport(), 'What do you want?', ['...'])
+    if not @dialog?
+      return
+
+    @dialogResponse = @dialog.getResponse()
+    if @dialogResponse
+      @behavior.input('dialog')
+      @updateDialog()
+
+  stopDialog: ->
+    @behavior.input('exitdialog')
+    @dialogMenu.kill()
+    @dialogMenu = null
+    @dialogResponse = null
+    @scene.paused = false
+
+  chooseDialogOption: (option) ->
+    optionObj = @dialogResponse.choose(option)
+    @dialogResponse = optionObj.getResponse()
+    if @dialogResponse
+      @updateDialog()
+    else
+      @stopDialog()
 
   trigger: (event, args...) ->
+    if event == 'exitdialog'
+      @stopDialog()
+    else if event == 'dialog'
+      @chooseDialogOption(args[0])
 
   update: (msDuration) ->
     super(msDuration)
@@ -262,16 +271,22 @@ class NPCharacter extends Character
   pace: (distance) ->
     # setup for when starting
     if not @paceDirection?
-      @paceDirection = -1.0
+      @paceDirection = -1
       @paceCenter = @position[0]
       # @lastPace != @position[0] when no collision occured
       @lastPace = @paceCenter - @paceDirection
 
+    walkedFarEnough = Math.abs(@position[0] - @paceCenter) > distance
+
     # if we stopped (because of collision) or if we have walked far enough
-    if Math.abs(@lastPace - @position[0]) == 0 or Math.abs(@position[0] - @paceCenter) > distance
+    if @collided or walkedFarEnough
+      if walkedFarEnough
+        # make sure that we don't go outside of area and get trapped out
+        @worldRect.left = @paceCenter + (distance * @paceDirection)
+
       # clear existing pacing motions
       @clearXMomentum()
-      @paceDirection *= -1.0  # switch direction
+      @paceDirection *= -1  # switch direction
 
     @addMotion(@paceDirection * @baseSpeed, 0.0)
     @lastPace = @position[0]
@@ -301,17 +316,25 @@ exports.Player = class Player extends Character
   constructor: (scene, rect) ->
     super(scene, rect)
     @player = true
+    @sprinting = false
 
   update: (msDuration) ->
     super(msDuration)
+
     @scene.center(@position)
 
+  getSpeedIncrement: ->
+    if @sprinting
+      @speedIncrement * 1.8
+    else
+      @speedIncrement
+
   left: ->
-    @addMotion(-@speedIncrement, 0.0)
+    @addMotion(-@getSpeedIncrement(), 0.0)
     @
 
   right: ->
-    @addMotion(@speedIncrement, 0.0)
+    @addMotion(@getSpeedIncrement(), 0.0)
     @
 
   jump: ->
@@ -323,3 +346,9 @@ exports.Player = class Player extends Character
   updateInventory: ->
     # TODO open inventory
     @
+
+  startSprint: ->
+    @sprinting = true
+
+  stopSprint: ->
+    @sprinting = false

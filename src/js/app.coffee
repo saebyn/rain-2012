@@ -24,10 +24,11 @@ gamejs = require 'gamejs'
 director = require 'director'
 loader = require 'loader'
 
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 400
+SCREEN_WIDTH = $(document).width() - 200
+SCREEN_HEIGHT = $(document).height() - 200
 
 
 gamejs.ready ->
-  gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
+  # make a global for ease of debugging
+  window.gameDirector = gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
   gameDirector.start(new loader.Loader(gameDirector, 'level1.json'))

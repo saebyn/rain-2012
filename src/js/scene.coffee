@@ -23,15 +23,19 @@
 
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
-entity = require 'entity'
 loader = require 'loader'
 menu = require 'menu'
+mobile = require 'mobile'
+
+EntityBuilder = require('entitybuilder').EntityBuilder
 
 
 exports.Scene = class Scene
-  constructor: (@director, worldSize, playerStart) ->
+  constructor: (@director, worldSize, @spritesheets, @gameTime=0) ->
     @viewportRect = @director.getViewport()
     @paused = false
+
+    @mobileDisplay = new mobile.MobileDisplay(@director)
 
     @modalDialogs = new gamejs.sprite.Group()
 
@@ -51,29 +55,33 @@ exports.Scene = class Scene
     # characters are the player and NPCs
     @characters = new gamejs.sprite.Group()
 
+    # attacks are things that move and hit things
+    @attacks = new gamejs.sprite.Group()
+
     @worldWidth = worldSize[0]
     @worldHeight = worldSize[1]
-
-    playerSize = [64, 128]
-    @player = new entity.Player(this, @toScreenRect(new gamejs.Rect(playerStart, playerSize)))
-    @player.image = new gamejs.Surface(@player.rect)
-    @player.image.fill('#ff0000')
-    @characters.add(@player)
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
 
+  getPlayer: ->
+    @player
+
   getDirector: ->
     @director
 
-  getEntityBuilder: (entityType, spritesheets) ->
+  getTime: ->
+    new Date(@gameTime*1000 + 0x9fffffff*1000)
+
+  getEntityBuilder: (entityType) ->
     group = switch entityType
       when 'npcs' then @characters
       when 'solids' then @solids
       when 'backgrounds' then @backgrounds
       when 'portals' then @portals
+      when 'player' then @characters
 
-    return new entity.EntityBuilder(@, group, entityType, spritesheets)
+    return new EntityBuilder(@, group, entityType, @spritesheets)
 
   start: ->
     @director.bind 'update', (msDuration) =>
@@ -81,9 +89,15 @@ exports.Scene = class Scene
 
     @director.bind 'resume', =>
       @paused = false
+      @pauseMenu.kill()
 
     @director.bind 'draw', (display) =>
       @draw(display)
+
+    @director.bind 'time', =>
+      if not @paused
+        @gameTime++
+        @mobileDisplay.setTime(@getTime())
 
     @director.bind 'mousedown', (event) =>
       switch event.button
@@ -93,17 +107,30 @@ exports.Scene = class Scene
       switch event.key
         when gamejs.event.K_a then @playerMove = -> @player.left()
         when gamejs.event.K_d then @playerMove = -> @player.right()
-        when gamejs.event.K_SPACE then @player.jump()
+        when gamejs.event.K_w then @player.jump()
+        when gamejs.event.K_SPACE then @attack()
+        when gamejs.event.K_SHIFT then @player.startSprint()
 
     @director.bind 'keyup', (event) =>
       switch event.key
         when gamejs.event.K_a then @playerMove = ->
         when gamejs.event.K_d then @playerMove = ->
-        when gamejs.event.K_ESC then @pause()
+        when gamejs.event.K_ESC then @togglePause()
         when gamejs.event.K_i then @player.openInventory()
+        when gamejs.event.K_SHIFT then @player.stopSprint()
 
+    @mobileDisplay.start()
+
+    (character.initialize() for character in @characters.sprites() when character.initialize?)
 
   stop: ->
+    # XXX its unsafe to rely on this scene unbinding its own events
+    @mobileDisplay.stop()
+
+  attack: _.debounce(->
+    @player.attack()
+  , 300, true)
+
 
   leftClick: (point) ->
     # check for any modal dialogs in the modals group and click on the last one
@@ -123,15 +150,22 @@ exports.Scene = class Scene
     # launch dialog subsys for first clicked NPC
     for char in charactersClicked
       if not char.player
+        @paused = true
         dialogMenu = char.startDialog()  # tell NPC that we want to talk
         # add dialogMenu to overlay
         @modalDialogs.add(dialogMenu)
         break
  
-  pause: ->
-    if not @paused
-      @modalDialogs.add(new menu.Menu(@director, @director.getViewport(), 'Paused', {resume: 'Back to Game', quit: 'Quit Game'}))
+  togglePause: _.debounce(->
+    if @paused
+      @pauseMenu.kill()
+      @paused = false
+    else
+      @pauseMenu = new menu.Menu(@director, @director.getViewport())
+      @pauseMenu.build('Paused', [['Back to Game', 'resume'], ['Quit Game', 'quit']])
+      @modalDialogs.add(@pauseMenu)
       @paused = true
+  , 200, true)
 
   update: (msDuration) ->
     # just let it skip a bit if we got slowed down that much
@@ -141,13 +175,18 @@ exports.Scene = class Scene
     if not @paused
       @playerMove()
       @characters.update(msDuration)
+      @attacks.update(msDuration)
+      @mobileDisplay.update(msDuration)
+      @solids.update(msDuration)
 
   draw: (display) ->
-    display.clear()
     @backgrounds.draw(display)
+    @portals.draw(display)
     @solids.draw(display)
     @items.draw(display)
     @characters.draw(display)
+    @attacks.draw(display)
+    @mobileDisplay.draw(display)
 
     if @modalDialogs.sprites().length > 0
       display.fill('rgba(0, 0, 0, 0.7)')
@@ -157,6 +196,7 @@ exports.Scene = class Scene
     # character capabilities and location of solids needs to be passed in
     new pathfinding.Map(character, this)
 
+  # Center the viewport on the given world position
   center: (worldPosition) ->
     @viewportRect.center = worldPosition
     if @viewportRect.bottom > @worldHeight
@@ -177,5 +217,6 @@ exports.Scene = class Scene
     rect.move(-@viewportRect.left, -@viewportRect.top)
 
   loadPortal: (portal) ->
-    newScene = new loader.Loader(@director, portal.destination)
+    @paused = true
+    newScene = new loader.Loader(@director, portal.destination, @gameTime)
     @director.replaceScene(newScene)

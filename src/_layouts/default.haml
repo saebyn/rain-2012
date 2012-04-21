@@ -50,7 +50,7 @@
   -# All JavaScript at the bottom, except for Modernizr
     Modernizr enables HTML5 elements & feature detects;
     For optimal performance, use a custom Modernizr build: www.modernizr.com/download/
-  %script{:src => "/js/lib/modernizr.min.js"}
+  %script{:src => "/js/lib/modernizr.js"}
 
 %body
   #container
@@ -59,12 +59,18 @@
       = yield
     %footer
 
+  -# Include JS templates
+  %script{:type => "text/template", :id => "mobile-device-tmpl"}
+    = partial "mobile"
+
   -# JavaScript at the bottom for fast page loading
 
   -# scripts concatenated and minified via build script
-  %script{:src => "/js/lib/yabble.js"}
-  %script{:src => "/js/lib/gamejs.js"}
-  %script{:src => "/js/lib/underscore.js"}
+  = javascripts "lib/jquery"
+  = javascripts "lib/underscore"
+  = javascripts "lib/backbone"
+  = javascripts "lib/yabble"
+  = javascripts "lib/gamejs"
   :javascript
     var $g = {
       ajaxBaseHref: "/assets/",
