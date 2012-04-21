@@ -73,7 +73,7 @@ exports.Portal = class Portal extends Entity
 
 
 class Character extends Entity
-  constructor: (scene, rect) ->
+  constructor: (scene, rect, @life=100) ->
     super(scene, rect)
     @direction = [0.0, 0.0]  # our current movement vector
 
@@ -99,7 +99,9 @@ class Character extends Entity
     attack = attacks.buildAttack(@scene, @, 'melee', @rect, @looking)
 
   hit: (hp) ->
-    console.log 'lost hp', @, hp
+    @life -= hp
+    if @life <= 0
+      @kill()
 
   handleCollisions: (movement) ->
     # if applying movement to the rect results in no collisions, return movement
@@ -142,25 +144,22 @@ class Character extends Entity
     @direction[1] = 0.0
 
   update: (msDuration) ->
-    @frameKey = 'default'
-
-    if Math.abs(@direction[0]) > 0
-      @frameKey = 'walking'
-
-    if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
-      @frameKey = 'running'
-
-    if @direction[1] < 0
-      @frameKey = 'jumping'
+    @frameKeys = []
 
     if @isAttackingTimer > 0
-      @frameKey = 'hitting'
+      @frameKeys.push('hitting')
       @isAttackingTimer -= msDuration
+    else if @direction[1] < 0
+      @frameKeys.push('jumping')
+    else if Math.abs(@direction[0]) > @baseSpeed + @maxSpeed / 2.0
+      @frameKeys.push('running')
+    else if Math.abs(@direction[0]) > 0
+      @frameKeys.push('walking')
 
     if @looking == 'right'
-      @frameKey += '-right'
+      @frameKeys.push('right')
     else if @looking == 'left'
-      @frameKey += '-left'
+      @frameKeys.push('left')
 
     super(msDuration)
     movement = $v.multiply(@direction, msDuration)

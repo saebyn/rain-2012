@@ -69,7 +69,7 @@ getSpriteImage = (rect, sheetImage, spriteDef, frame=0) ->
 
 
 loadAnimation = (spriteDef, entity, sheetImage, spec) ->
-  if spriteDef.frames?
+  if spriteDef.frames? or spriteDef.frameKeys?
     entity.updateAnimation = (msDuration) =>
       entity.progressFrame(msDuration, spriteDef)
       updatedImage = getSpriteImage(entity.rect, sheetImage, spriteDef, entity.frame)
@@ -147,13 +147,41 @@ exports.Sprite = class Sprite extends gamejs.sprite.Sprite
 
   getFrames: (spriteDef) ->
     if not isNaN(parseInt(spriteDef.frames))
+      # static set of frames for animation
       [0...spriteDef.frames]
     else
-      frameKey = @frameKey or 'default'
-      if frameKey of spriteDef.frames
-        [spriteDef.frames[frameKey][0]..spriteDef.frames[frameKey][1]]
-      else
-        [0]
+      # frames to use for animation depend on which set of keys sprite
+      # has set.
+      keys = @frameKeys or []
+
+      # iterate over spriteDef.frameKeys, sorted by length of spriteDef.frameKeys[i].keys, descending
+      frameKeys = spriteDef.frameKeys
+        
+      frameKeys.sort((a, b) ->
+        a.keys.length < b.keys.length ? -1 : (a.keys.length == b.keys.length ? 0 : 1)
+      )
+
+      for frameKey in frameKeys
+        presentKeys = (key for key in frameKey.keys when key[0] != '~')
+
+        # skip cases where there are fewer keys than the keys in the sprite def
+        if keys.length < presentKeys.length
+          continue
+
+        # are all keys not prefixed by ~ in spriteDef.frameKeys[i].keys in keys ?
+        if (true for key in presentKeys when key not in keys).length > 0
+          continue
+
+        absentKeys = (key.slice(1) for key in frameKey.keys when key[0] == '~')
+        # are no keys that are prefixed by "~" in spriteDef.frameKeys[i].keys in key?
+        if (true for key in absentKeys when key in keys).length > 0
+          continue
+
+        # if so, get frameKey's frames and convert it into a range [0]..[1]
+        return [frameKey.frames[0]..frameKey.frames[1]]
+
+      # if no matches, use first frame
+      [0]
 
   # return the number of frames in the sprite animation
   getFrameCount: (spriteDef) ->
