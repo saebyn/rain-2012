@@ -81,7 +81,7 @@ exports.Loader = class Loader
   update: (msDuration) ->
     if @loaded
       newScene = new scene.Scene(@director, @level.size, @spritesheets, @gameTime)
-      for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
+      for entityType in ['npcs', 'solids', 'backgrounds', 'portals', 'items']
         if @level[entityType]?
           entityBuilder = newScene.getEntityBuilder(entityType)
           for entityName, entityDef of @level[entityType]

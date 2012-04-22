@@ -107,7 +107,7 @@ exports.Director = class Director extends event.Event
       width: rect.width
       height: rect.height
       zIndex: 1000
-      backgroundColor: '#33ffaa'
+      backgroundColor: '#ffffff'
     )
     # insert element into DOM
     $('body').append(el$[0])

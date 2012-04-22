@@ -213,6 +213,10 @@ td { vertical-align: top; }
 
 #key-defs { float: right; width: 150px; }
 
+#inventory {
+  opacity: 0.5;
+}
+
 #gjs-canvas { border: 2px solid black; margin: 10px 20px; }
 
 .rounded-bottom {
