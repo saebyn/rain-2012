@@ -86,6 +86,9 @@ exports.Scene = class Scene
     return new EntityBuilder(@, group, entityType, @spritesheets)
 
   start: ->
+    @director.addHover 'items', @items
+    @director.bind 'hover:items', @highlight
+
     @director.bind 'update', (msDuration) =>
       @update(msDuration)
 
@@ -101,9 +104,10 @@ exports.Scene = class Scene
         @gameTime++
         @mobileDisplay.setTime(@getTime())
 
-    @director.bind 'mousedown', (event) =>
+    @director.bind 'mousedown', _.debounce((event) =>
       switch event.button
         when 0 then @leftClick(event.pos)
+    , 100, true)
 
     @director.bind 'keydown', (event) =>
       if @paused
@@ -129,13 +133,17 @@ exports.Scene = class Scene
     (character.initialize() for character in @characters.sprites() when character.initialize?)
 
   stop: ->
-    # XXX its unsafe to rely on this scene unbinding its own events
+    # XXX its currently unsafe to rely on this scene unbinding its own events
     @mobileDisplay.stop()
+    @director.unbind 'hover:items', @highlight
+    @director.removeHover 'items'
 
   attack: _.debounce(->
     @player.attack()
   , 300, true)
 
+  highlight: (sprites) ->
+    sprite.highlight() for sprite in sprites
 
   leftClick: (point) ->
     # TODO generalize these sets of procedures... try to do pixel perfect collsion detection for characters and items
@@ -154,7 +162,7 @@ exports.Scene = class Scene
         dialogMenu = char.startDialog()  # tell NPC that we want to talk
         # add dialogMenu to overlay
         @modalDialogs.add(dialogMenu)
-        break
+        return
 
     # find any item clicked on
     itemsClicked = @items.collidePoint(point)

@@ -213,10 +213,6 @@ td { vertical-align: top; }
 
 #key-defs { float: right; width: 150px; }
 
-#inventory {
-  opacity: 0.5;
-}
-
 #gjs-canvas { border: 2px solid black; margin: 10px 20px; }
 
 .rounded-bottom {
@@ -274,6 +270,53 @@ td { vertical-align: top; }
   background-color: gray;
 }
 
+
+/* styles for inventory system */
+#inventory {
+  opacity: 0.5;
+}
+
+#inventory ul {
+  padding: 1em;
+  margin: 1em 0px 0px;
+}
+
+#inventory ul li {
+  list-style: none;
+  padding: 10px;
+  display: inline-block;
+  height: 100px;
+  width: 100px;
+  border: 1px solid black;
+  text-align: center;
+  margin-right: 15px;
+  margin-bottom: 15px;
+}
+
+#inventory ul li.item {
+  background-color: #000000;
+  position: relative;
+}
+
+#inventory ul li.item img {
+  padding-bottom: 0.6em;
+}
+
+#inventory ul li.item span.name {
+  color: white;
+}
+
+#inventory ul li.item button.drop {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+
+#inventory button.close {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+}
 
 
 

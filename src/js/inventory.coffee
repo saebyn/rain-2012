@@ -35,14 +35,30 @@ exports.InventoryItem = InventoryItem = Backbone.Model.extend(
 
 InventoryItemView = Backbone.View.extend(
   tagName: 'li'
-  className: 'item'
-  template: _.template('An item')
+  className: 'item rounded-top rounded-bottom'
+  template: _.template('<img src="<%= icon %>" title="<%= description %>" width="80" height="80" alt="Item icon"><span class="name"><%= name %></span><button class="drop">drop</button>')
+
+  events:
+    'click': 'activate'
+    'click .drop': 'drop'
 
   initialize: ->
     @model.bind 'change', @render, this
 
+  activate: ->
+    @model.collection.trigger('activate:' + @model.id, @model)
+
+  drop: ->
+    @model.collection.trigger('drop', @model)
+    @model.collection.trigger('drop:' + @model.id, @model)
+    @model.collection.remove(@model)
+
   render: ->
-    @$el.html(this.template())
+    @$el.html(this.template(
+      name: @model.get('name')
+      description: @model.get('description')
+      icon: @model.get('icon')
+    ))
     @$el.attr({id: @model.cid})
     @
 )
@@ -92,6 +108,8 @@ exports.InventorySprite = class InventorySprite extends gamejs.sprite.Sprite
     @view.bind 'destroy', =>
       @kill()
       callback()
+
+  click: ->
 
   draw: ->
 

@@ -32,9 +32,20 @@ exports.Entity = class Entity extends Sprite
 
 
 exports.Item = class Item extends Entity
+  constructor: (scene, rect, @id, @parameters) ->
+    super(scene, rect)
+    @frameKeys = []
+
+  highlight: ->
+    @frameKeys = ['highlight']
+
+  draw: (surface)->
+    super(surface)
+    @frameKeys = []
+
   activate: ->
-    # TODO create an InventoryItem from this Item
-    # TODO add the inventory item to the players inventory
+    @scene.getPlayer().addItemToInventory(@id, @parameters)
+    @kill()
 
 
 exports.BackgroundSprite = class BackgroundSprite extends Entity

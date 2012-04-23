@@ -85,7 +85,7 @@ exports.Loader = class Loader
         if @level[entityType]?
           entityBuilder = newScene.getEntityBuilder(entityType)
           for entityName, entityDef of @level[entityType]
-            entityBuilder.newEntity(entityDef)
+            entityBuilder.newEntity(entityName, entityDef)
 
       playerSize = [64, 128]
       playerRect = newScene.toScreenRect(new gamejs.Rect(@level.playerStart, playerSize))

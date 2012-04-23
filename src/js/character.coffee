@@ -281,7 +281,6 @@ exports.NPCharacter = class NPCharacter extends Character
 exports.Player = class Player extends Character
   constructor: (scene, rect) ->
     super(scene, rect)
-    # TODO support initializing the inventory
     @inventory = new inventory.Inventory()
     @player = true
     @sprinting = false
@@ -293,6 +292,10 @@ exports.Player = class Player extends Character
 
   getInventory: ->
     return @inventory
+
+  addItemToInventory: (id, parameters) ->
+    parameters.id = id
+    @inventory.add(parameters)
 
   getSpeedIncrement: ->
     if @sprinting
