@@ -81,11 +81,11 @@ exports.Loader = class Loader
   update: (msDuration) ->
     if @loaded
       newScene = new scene.Scene(@director, @level.size, @spritesheets, @gameTime)
-      for entityType in ['npcs', 'solids', 'backgrounds', 'portals']
+      for entityType in ['npcs', 'solids', 'backgrounds', 'portals', 'items']
         if @level[entityType]?
           entityBuilder = newScene.getEntityBuilder(entityType)
           for entityName, entityDef of @level[entityType]
-            entityBuilder.newEntity(entityDef)
+            entityBuilder.newEntity(entityName, entityDef)
 
       playerSize = [64, 128]
       playerRect = newScene.toScreenRect(new gamejs.Rect(@level.playerStart, playerSize))

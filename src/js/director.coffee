@@ -30,6 +30,7 @@ exports.Director = class Director extends event.Event
     @display = gamejs.display.setMode([width, height])
     @activeScene = false
     @sceneStack = []
+    @hovers = {}
     @live = false
     gamejs.time.fpsCallback(@tick, this, 30)
     gamejs.time.fpsCallback(->
@@ -41,7 +42,7 @@ exports.Director = class Director extends event.Event
       gamejs.event.get().forEach (event) =>
         switch event.type
           when gamejs.event.MOUSE_DOWN then @trigger('mousedown', event)
-          when gamejs.event.MOUSE_MOTION then @trigger('mousemove', event.pos)
+          when gamejs.event.MOUSE_MOTION then @mousemotion(event)
           when gamejs.event.MOUSE_UP then @trigger('mouseup', event)
           when gamejs.event.KEY_DOWN then @trigger('keydown', event)
           when gamejs.event.KEY_UP then @trigger('keyup', event)
@@ -53,6 +54,19 @@ exports.Director = class Director extends event.Event
       @triggerReverse('draw', @display)
     else
       gamejs.event.get()  # discard unused events
+
+  mousemotion: (event) ->
+    @trigger('mousemove', event.pos)
+    for name, group of @hovers
+      sprites = group.collidePoint(event.pos)
+      if sprites.length > 0
+        @trigger('hover:' + name, sprites)
+
+  addHover: (name, group) ->
+    @hovers[name] = group
+
+  removeHover: (name) ->
+    @hovers[name] = undefined
 
   start: (scene) ->
     @live = true
@@ -107,7 +121,7 @@ exports.Director = class Director extends event.Event
       width: rect.width
       height: rect.height
       zIndex: 1000
-      backgroundColor: '#33ffaa'
+      backgroundColor: '#ffffff'
     )
     # insert element into DOM
     $('body').append(el$[0])

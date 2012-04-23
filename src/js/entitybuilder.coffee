@@ -24,6 +24,7 @@
 gamejs = require 'gamejs'
 
 entities = require 'entity'
+character = require 'character'
 sprite = require 'sprite'
 
 
@@ -31,13 +32,13 @@ exports.EntityBuilder = class EntityBuilder
   constructor: (@scene, @group, @type, @spritesheets) ->
 
   newPlayer: (rect, spriteName) ->
-    player = new entities.Player(@scene, rect)
+    player = new character.Player(@scene, rect)
     sprite.setupSprite(player, spriteName, @spritesheets)
     @group.add(player)
     @scene.player = player
     player
 
-  newEntity: (parameters={}) ->
+  newEntity: (id, parameters={}) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
     behavior = parameters.behavior or []
     distance = parameters.distance or 0
@@ -45,9 +46,10 @@ exports.EntityBuilder = class EntityBuilder
 
     entity = switch @type
       when 'solids' then new entities.Entity(@scene, rect)
-      when 'npcs' then new entities.NPCharacter(@scene, rect, parameters.dialog, behavior)
+      when 'npcs' then new character.NPCharacter(@scene, rect, parameters.dialog, behavior)
       when 'backgrounds' then new entities.BackgroundSprite(@scene, rect, distance)
       when 'portals' then new entities.Portal(@scene, rect, destination)
+      when 'items' then new entities.Item(@scene, rect, id, parameters)
 
     if @type != 'portals'
       sprite.loadSpriteSpec(entity, parameters, @spritesheets)
