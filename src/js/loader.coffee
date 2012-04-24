@@ -24,12 +24,19 @@
 gamejs = require 'gamejs'
 scene = require 'scene'
 
+World = require('world').World
+
+
 # A loading screen...
 # Preload the level sprites, etc, create a game scene, and switch the
 # director to it.
 
 exports.Loader = class Loader
-  constructor: (@director, levelFilename, @gameTime=0) ->
+  constructor: (@director, levelFilename, @world=null) ->
+    if not @world?
+      @world = new World()
+
+    @world.selectLevel(levelFilename)
     @spritesheets = {}
     @level = gamejs.http.load(levelFilename)
     @loaded = false
@@ -80,7 +87,8 @@ exports.Loader = class Loader
 
   update: (msDuration) ->
     if @loaded
-      newScene = new scene.Scene(@director, @level.size, @spritesheets, @gameTime)
+      @world.setLevelSize(@level.size)
+      newScene = new scene.Scene(@director, @world, @spritesheets)
       for entityType in ['npcs', 'solids', 'backgrounds', 'portals', 'items']
         if @level[entityType]?
           entityBuilder = newScene.getEntityBuilder(entityType)

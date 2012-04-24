@@ -29,20 +29,25 @@ sprite = require 'sprite'
 
 
 exports.EntityBuilder = class EntityBuilder
-  constructor: (@scene, @group, @type, @spritesheets) ->
+  constructor: (@world, @scene, @group, @type, @spritesheets) ->
 
   newPlayer: (rect, spriteName) ->
     player = new character.Player(@scene, rect)
     sprite.setupSprite(player, spriteName, @spritesheets)
+    @world.loadPlayer(player)
     @group.add(player)
     @scene.player = player
     player
 
-  newEntity: (id, parameters={}) ->
+  newEntity: (id, parameters) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
     behavior = parameters.behavior or []
     distance = parameters.distance or 0
     destination = parameters.destination or ''
+
+    # if we have entities cached in the @world
+    # TODO override parameters with values for this entity from world
+    # TODO discard entities that don't exist in world
 
     entity = switch @type
       when 'solids' then new entities.Entity(@scene, rect)

@@ -285,6 +285,8 @@ exports.Player = class Player extends Character
     @player = true
     @sprinting = false
 
+  # TODO serialization of inventory
+
   update: (msDuration) ->
     super(msDuration)
 

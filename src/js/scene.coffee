@@ -32,7 +32,7 @@ EntityBuilder = require('entitybuilder').EntityBuilder
 
 
 exports.Scene = class Scene
-  constructor: (@director, worldSize, @spritesheets, @gameTime=0) ->
+  constructor: (@director, @world, @spritesheets) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -59,8 +59,8 @@ exports.Scene = class Scene
     # attacks are things that move and hit things
     @attacks = new gamejs.sprite.Group()
 
-    @worldWidth = worldSize[0]
-    @worldHeight = worldSize[1]
+    @worldWidth = @world.size[0]
+    @worldHeight = @world.size[1]
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
@@ -72,7 +72,7 @@ exports.Scene = class Scene
     @director
 
   getTime: ->
-    new Date(@gameTime*1000 + 0x9fff9fff*1000)
+    new Date(@world.gameTime*1000 + 0x9fff9fff*1000)
 
   getEntityBuilder: (entityType) ->
     group = switch entityType
@@ -83,7 +83,7 @@ exports.Scene = class Scene
       when 'player' then @characters
       when 'items' then @items
 
-    return new EntityBuilder(@, group, entityType, @spritesheets)
+    return new EntityBuilder(@world, this, group, entityType, @spritesheets)
 
   start: ->
     @director.addHover 'items', @items
@@ -101,7 +101,7 @@ exports.Scene = class Scene
 
     @director.bind 'time', =>
       if not @paused
-        @gameTime++
+        @world.gameTime++
         @mobileDisplay.setTime(@getTime())
 
     @director.bind 'mousedown', _.debounce((event) =>
@@ -137,6 +137,12 @@ exports.Scene = class Scene
     @mobileDisplay.stop()
     @director.unbind 'hover:items', @highlight
     @director.removeHover 'items'
+    @saveToWorld()
+
+  saveToWorld: ->
+    # TODO serialize all entities into world cache
+    # TODO @world.clearEntities()
+    # TODO for every saved entity (except player) call @world.addEntity(type, entity)
 
   attack: _.debounce(->
     @player.attack()
@@ -246,5 +252,5 @@ exports.Scene = class Scene
 
   loadPortal: (portal) ->
     @paused = true
-    newScene = new loader.Loader(@director, portal.destination, @gameTime)
+    newScene = new loader.Loader(@director, portal.destination, @world)
     @director.replaceScene(newScene)
