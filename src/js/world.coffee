@@ -32,6 +32,8 @@ exports.World = class World
   # Target the cache at a new level
   selectLevel: (name) ->
     @name = name
+    if not @levels[@name]?
+      @levels[@name] = {}
 
   setLevelSize: (@size) ->
 
@@ -51,12 +53,26 @@ exports.World = class World
   # Update the entity with values from the cache
   loadEntity: (id, entity) ->
 
-  # Synchronize the player
+  getPlayerPosition: ->
+    if @name of @levels
+      @levels[@name]?.player?.position
+
+  # Load the player with cached values
   loadPlayer: (player) ->
-    # TODO don't override position
-    # TODO override parameters with values for this entity from level
-    # TODO load player inventory
+    # update the player's position to that within the current level
+    position = @getPlayerPosition()
+    if position?
+      player.position = position
+    
+    if @player?
+      # copy the inventory of the player into the new player object
+      player.inventory = @player.inventory
+
     @player = player
+
+  # Update the cache with player values
+  updatePlayer: (player) ->
+    @levels[@name].player = {position: player.position}
 
   # Save the cache of all levels to storage, indicating which level
   # is the current.

@@ -139,10 +139,11 @@ exports.Scene = class Scene
     @director.removeHover 'items'
     @saveToWorld()
 
+  # serialize all entities into world cache
   saveToWorld: ->
-    # TODO serialize all entities into world cache
-    # TODO @world.clearEntities()
+    @world.clearEntities()
     # TODO for every saved entity (except player) call @world.addEntity(type, entity)
+    @world.updatePlayer(@player)
 
   attack: _.debounce(->
     @player.attack()

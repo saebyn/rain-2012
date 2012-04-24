@@ -32,13 +32,12 @@ World = require('world').World
 # director to it.
 
 exports.Loader = class Loader
-  constructor: (@director, levelFilename, @world=null) ->
+  constructor: (@director, @levelFilename, @world=null) ->
     if not @world?
       @world = new World()
 
-    @world.selectLevel(levelFilename)
     @spritesheets = {}
-    @level = gamejs.http.load(levelFilename)
+    @level = gamejs.http.load(@levelFilename)
     @loaded = false
 
   start: ->
@@ -87,6 +86,7 @@ exports.Loader = class Loader
 
   update: (msDuration) ->
     if @loaded
+      @world.selectLevel(@levelFilename)
       @world.setLevelSize(@level.size)
       newScene = new scene.Scene(@director, @world, @spritesheets)
       for entityType in ['npcs', 'solids', 'backgrounds', 'portals', 'items']
