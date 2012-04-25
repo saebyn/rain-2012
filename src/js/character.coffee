@@ -37,8 +37,8 @@ threshold = (value, level, min = 0.0) ->
 
 
 class Character extends Entity
-  constructor: (scene, rect, @life=100) ->
-    super(scene, rect)
+  constructor: (scene, rect, id, @life=100) ->
+    super(scene, rect, id)
     @direction = [0.0, 0.0]  # our current movement vector
 
     @landed = false
@@ -53,6 +53,15 @@ class Character extends Entity
     @jumpSpeed = -1.2
     @gravitySpeed = 0.4
     @maxGravitySpeed = 1.0
+
+  copyData: (newObject) ->
+    super(newObject)
+    newObject.landed = @landed
+    newObject.direction = @direction
+    newObject.collided = @collided
+    newObject.looking = @looking
+    newObject.lastFacing = @lastFacing
+    newObject.life = @life
 
   # attack the direction we're facing
   attack: ->
@@ -169,8 +178,8 @@ class Character extends Entity
 
 
 exports.NPCharacter = class NPCharacter extends Character
-  constructor: (scene, rect, dialogName, behavior) ->
-    super(scene, rect)
+  constructor: (scene, rect, id, dialogName, behavior) ->
+    super(scene, rect, id)
     @behavior = new fsm.FSM(behavior, @behaviorDispatch)
     @behavior.input('start')
     if dialogName
@@ -183,6 +192,10 @@ exports.NPCharacter = class NPCharacter extends Character
       # `dialogResponse` is the current response given to the player
       # it should be null when the NPC isn't talking to the player
       @dialogResponse = null
+
+  copyData: (newObject) ->
+    super(newObject)
+    newObject.behavior = @behavior.copy(newObject.behaviorDispatch)
 
   updateDialog: ->
     # extract dialog options
@@ -280,17 +293,21 @@ exports.NPCharacter = class NPCharacter extends Character
 
 exports.Player = class Player extends Character
   constructor: (scene, rect) ->
-    super(scene, rect)
+    super(scene, rect, '#player')
     @inventory = new inventory.Inventory()
     @player = true
     @sprinting = false
-
-  # TODO serialization of inventory
 
   update: (msDuration) ->
     super(msDuration)
 
     @scene.center(@position)
+
+  # Copy any data that should be carried over between levels into the
+  # new level's player object.
+  copyLevelInvariantData: (newPlayerObject) ->
+    newPlayerObject.life = @life
+    newPlayerObject.inventory = @inventory
 
   getInventory: ->
     return @inventory

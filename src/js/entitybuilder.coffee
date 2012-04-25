@@ -45,16 +45,21 @@ exports.EntityBuilder = class EntityBuilder
     distance = parameters.distance or 0
     destination = parameters.destination or ''
 
-    # if we have entities cached in the @world
-    # TODO override parameters with values for this entity from world
-    # TODO discard entities that don't exist in world
-
     entity = switch @type
-      when 'solids' then new entities.Entity(@scene, rect)
-      when 'npcs' then new character.NPCharacter(@scene, rect, parameters.dialog, behavior)
-      when 'backgrounds' then new entities.BackgroundSprite(@scene, rect, distance)
-      when 'portals' then new entities.Portal(@scene, rect, destination)
+      when 'solids' then new entities.Entity(@scene, rect, id)
+      when 'npcs' then new character.NPCharacter(@scene, rect, id, parameters.dialog, behavior)
+      when 'backgrounds' then new entities.BackgroundSprite(@scene, rect, id, distance)
+      when 'portals' then new entities.Portal(@scene, rect, id, destination)
       when 'items' then new entities.Item(@scene, rect, id, parameters)
+
+    # if we have entities cached in the @world
+    if @world.hasEntities()
+      # discard entities that don't exist in world
+      if not @world.hasEntity(@type, id)
+        return
+
+      # load values for this entity from world
+      @world.loadEntity(@type, id, entity)
 
     if @type != 'portals'
       sprite.loadSpriteSpec(entity, parameters, @spritesheets)

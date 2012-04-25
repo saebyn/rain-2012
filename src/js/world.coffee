@@ -39,23 +39,36 @@ exports.World = class World
 
   # Have any entities been loaded into the cache?
   hasEntities: ->
-    false
+    @levels[@name]?.entities?
 
   # Has an entity with this type and id been added to the cache?
   hasEntity: (type, id) ->
+    if not @levels[@name]?.entities[type]?
+      true
+    else
+      @levels[@name]?.entities[type]?[id]?
 
   # Remove all cached entities.
   clearEntities: ->
+    @levels[@name]?.entities = undefined
 
   # Add a new entity to the cache
   addEntity: (type, entity) ->
+    if not @levels[@name].entities?
+      @levels[@name].entities = {}
+
+    if not @levels[@name].entities[type]
+      @levels[@name].entities[type] = {}
+
+    @levels[@name].entities[type][entity.id] = entity
 
   # Update the entity with values from the cache
-  loadEntity: (id, entity) ->
+  # This should not be called if @hasEntities() returns false
+  loadEntity: (type, id, entity) ->
+    @levels[@name].entities[type]?[id]?.copyData?(entity)
 
   getPlayerPosition: ->
-    if @name of @levels
-      @levels[@name]?.player?.position
+    @levels[@name]?.player?.position
 
   # Load the player with cached values
   loadPlayer: (player) ->
@@ -65,8 +78,7 @@ exports.World = class World
       player.position = position
     
     if @player?
-      # copy the inventory of the player into the new player object
-      player.inventory = @player.inventory
+      @player.copyLevelInvariantData(player)
 
     @player = player
 
@@ -74,9 +86,15 @@ exports.World = class World
   updatePlayer: (player) ->
     @levels[@name].player = {position: player.position}
 
+  # Set up the storage if not already
+  ensureStorageConfigured: ->
+    # TODO make sure rain.version matches current version, else throw exception
+    # TODO make sure rain.savedGames is set and an object
+
   # Save the cache of all levels to storage, indicating which level
   # is the current.
   save: (name) ->
+    @ensureStorageConfigured()
     # TODO save a serialization of the player to the level
 
   # Load a saved cache and return the current level name.

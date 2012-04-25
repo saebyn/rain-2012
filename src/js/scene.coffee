@@ -142,7 +142,8 @@ exports.Scene = class Scene
   # serialize all entities into world cache
   saveToWorld: ->
     @world.clearEntities()
-    # TODO for every saved entity (except player) call @world.addEntity(type, entity)
+    @world.addEntity('npcs', npc) for npc in @characters.sprites() when not npc.player
+    @world.addEntity('items', item) for item in @items.sprites()
     @world.updatePlayer(@player)
 
   attack: _.debounce(->

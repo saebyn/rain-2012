@@ -27,13 +27,20 @@ Sprite = require('sprite').Sprite
 
 
 exports.Entity = class Entity extends Sprite
+  constructor: (scene, rect, @id) ->
+    super(scene, rect)
+
+  # Copy the data of this entity into a new entity object
+  copyData: (newEntityObject) ->
+    newEntityObject.position = @position
+
   trigger: (event, args...) ->
     console.log 'Entity got event', event, 'with args', args
 
 
 exports.Item = class Item extends Entity
-  constructor: (scene, rect, @id, @parameters) ->
-    super(scene, rect)
+  constructor: (scene, rect, id, @parameters) ->
+    super(scene, rect, id)
     @frameKeys = []
 
   highlight: ->
@@ -49,8 +56,8 @@ exports.Item = class Item extends Entity
 
 
 exports.BackgroundSprite = class BackgroundSprite extends Entity
-  constructor: (scene, rect, @distance) ->
-    super(scene, rect)
+  constructor: (scene, rect, id, @distance) ->
+    super(scene, rect, id)
 
     rectGet = ->
       if @distance == 0
@@ -72,7 +79,7 @@ exports.BackgroundSprite = class BackgroundSprite extends Entity
 
 
 exports.Portal = class Portal extends Entity
-  constructor: (scene, rect, @destination) ->
+  constructor: (scene, rect, id, @destination) ->
     super(scene, rect)
     @image = new gamejs.Surface(rect)
     @image.fill("#ffaaaa")
