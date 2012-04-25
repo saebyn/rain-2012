@@ -39,6 +39,20 @@ exports.EntityBuilder = class EntityBuilder
     @scene.player = player
     player
 
+  vivifyEntity: (serialization) ->
+    {
+      copyData: (entity) ->
+        for key, value of serialization
+          entity[key] = value
+    }
+
+  vivifyPlayer: (serialization) ->
+    {
+      copyLevelInvariantData: (player) ->
+        for key, value of serialization
+          player[key] = value
+    }
+
   newEntity: (id, parameters) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
     behavior = parameters.behavior or []

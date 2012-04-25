@@ -87,15 +87,62 @@ exports.World = class World
     @levels[@name].player = {position: player.position}
 
   # Set up the storage if not already
-  ensureStorageConfigured: ->
+  ensureStorageConfigured: (force) ->
     # TODO make sure rain.version matches current version, else throw exception
-    # TODO make sure rain.savedGames is set and an object
+
+  serializeEntities: (entities) ->
+    serializedEntities = {}
+    for id, entity of entities
+      serialization = {}
+      entity.copyData(serialization)
+      serializedEntities[id] = serialization
+
+    serializedEntities
 
   # Save the cache of all levels to storage, indicating which level
   # is the current.
-  save: (name) ->
-    @ensureStorageConfigured()
-    # TODO save a serialization of the player to the level
+  save: (name, force=false) ->
+    @ensureStorageConfigured(force)
+    # save serialization of player to world save
+    serializedPlayer = {}
+    @player.copyLevelInvariantData(serializedPlayer)
+
+    # write out player
+    localStorage['rain.savedGames.' + name + '.player'] = serializedPlayer
+
+    save = {}
+    for levelName, level of @levels
+      levelSave = {}
+      # save player position in level
+      levelSave.player = level.player
+
+      levelSave.entities = {}
+      # save each entity in level
+      levelSave.entities.npcs = @serializeEntities(level.entities.npcs)
+      levelSave.entities.items = @serializeEntities(level.entities.items)
+
+      save[levelName] = levelSave
+
+    localStorage['rain.savedGames.' + name] = JSON.stringify(save)
+    @updateSavedGames(name)
+
+  updateSavedGames: (name) ->
+    if localStorage['rain.savedGames']?
+      saves = JSON.parse(localStorage['rain.savedGames'])
+    else
+      saves = {}
+
+    saves[name] = Date.now()
+
+    localStorage['rain.savedGames'] = JSON.stringify(saves)
 
   # Load a saved cache and return the current level name.
   load: (name) ->
+    # TODO
+    # for each level in save
+      # get each entity serialization, call entitybuilder.vivifyEntity(serialization) and cache into level in appropriate slot
+      # get the player data for level and copy it into level.player
+
+    # load level invariant data into @player
+    serializedPlayer = {}  # TODO copy from save
+    @player = playerbuilder.vivifyPlayer(serializedPlayer)

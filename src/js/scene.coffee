@@ -89,15 +89,14 @@ exports.Scene = class Scene
     @director.addHover 'items', @items
     @director.bind 'hover:items', @highlight
 
-    @director.bind 'update', (msDuration) =>
-      @update(msDuration)
+    @director.bind 'resume', @resumeGame
+    @director.bind 'save', @saveGame
+    @director.bind 'savequit', @quitGame
+    @director.bind 'savequit', @saveGame
+    @director.bind 'quit', @quitGame
 
-    @director.bind 'resume', =>
-      @paused = false
-      @pauseMenu.kill()
-
-    @director.bind 'draw', (display) =>
-      @draw(display)
+    @director.bind 'draw', @draw
+    @director.bind 'update', @update
 
     @director.bind 'time', =>
       if not @paused
@@ -134,10 +133,39 @@ exports.Scene = class Scene
 
   stop: ->
     # XXX its currently unsafe to rely on this scene unbinding its own events
+    # currently not cleaned up: key and mouse events, and time ticks
     @mobileDisplay.stop()
+    @director.unbind 'draw', @draw
+    @director.unbind 'update', @update
+
     @director.unbind 'hover:items', @highlight
     @director.removeHover 'items'
+    @director.unbind 'resume', @resumeGame
+    @director.unbind 'save', @saveGame
+    @director.unbind 'savequit', @quitGame
+    @director.unbind 'savequit', @saveGame
+    @director.unbind 'quit', @quitGame
     @saveToWorld()
+
+  # Handle event to exit from ESC/pause menu.
+  resumeGame: =>
+    @paused = false
+    @pauseMenu.kill()
+
+  # Handle quit event from director
+  quitGame: =>
+    if confirm('Are you sure you want to quit without saving your progress?')
+      # TODO switch the scene to the intro scene
+      console.log 'quit game'
+  
+  # Handle game save event from director
+  saveGame: =>
+    @saveToWorld()
+    saveName = prompt('Savepoint name?')
+    if saveName
+      @world.save(saveName)
+    else
+      return false
 
   # serialize all entities into world cache
   saveToWorld: ->
@@ -190,7 +218,10 @@ exports.Scene = class Scene
       @paused = false
     else
       @pauseMenu = new menu.Menu(@director, @director.getViewport())
-      @pauseMenu.build('Paused', [['Back to Game', 'resume'], ['Quit Game', 'quit']])
+      @pauseMenu.build('Paused', [['Back to Game', 'resume'],
+                                  ['Save Progress', 'save'],
+                                  ['Save and Quit', 'savequit'],
+                                  ['Quit Game', 'quit']])
       @modalDialogs.add(@pauseMenu)
       @paused = true
   , 200, true)
@@ -201,7 +232,7 @@ exports.Scene = class Scene
     ))
     @paused = true
 
-  update: (msDuration) ->
+  update: (msDuration) =>
     # just let it skip a bit if we got slowed down that much
     # TODO think about how this works a bit...
     # maybe pause the game if we detect that we're going to lose focus.. is that doable?
@@ -215,7 +246,7 @@ exports.Scene = class Scene
       @mobileDisplay.update(msDuration)
       @solids.update(msDuration)
 
-  draw: (display) ->
+  draw: (display) =>
     @backgrounds.draw(display)
     @portals.draw(display)
     @solids.draw(display)
