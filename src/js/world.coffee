@@ -23,6 +23,8 @@
 
 gamejs = require 'gamejs'
 
+entitybuilder = require 'entitybuilder'
+
 
 exports.World = class World
   constructor: ->
@@ -99,8 +101,17 @@ exports.World = class World
 
     serializedEntities
 
+  deserializeEntities: (serializedEntities) ->
+    entities = {}
+    for id, entity of serializedEntities
+      entities[id] = entitybuilder.vivifyEntity(entity)
+
+    entities
+
   # Save the cache of all levels to storage, indicating which level
   # is the current.
+  # This expects to been executed within a running game, so that a level
+  # is already selected (selectLevel() has been called at least once).
   save: (name, force=false) ->
     @ensureStorageConfigured(force)
     # save serialization of player to world save
@@ -124,25 +135,45 @@ exports.World = class World
       save[levelName] = levelSave
 
     localStorage['rain.savedGames.' + name] = JSON.stringify(save)
-    @updateSavedGames(name)
+    @updateSavedGames(name, @name)
 
-  updateSavedGames: (name) ->
+  updateSavedGames: (name, lastLevel) ->
     if localStorage['rain.savedGames']?
       saves = JSON.parse(localStorage['rain.savedGames'])
     else
       saves = {}
 
-    saves[name] = Date.now()
+    saves[name] = [Date.now(), lastLevel]
 
     localStorage['rain.savedGames'] = JSON.stringify(saves)
 
+  getSavedGames: ->
+    if localStorage['rain.savedGames']?
+      saves = JSON.parse(localStorage['rain.savedGames'])
+    else
+      saves = {}
+
   # Load a saved cache and return the current level name.
+  # Returns false if the save could not be found.
   load: (name) ->
-    # TODO
-    # for each level in save
-      # get each entity serialization, call entitybuilder.vivifyEntity(serialization) and cache into level in appropriate slot
-      # get the player data for level and copy it into level.player
+    saves = @getSavedGames()
+    if name not of saves
+      return false
+
+    [lastSaved, @name] = saves[name]
+    @levels = {}
+
+    savedGame = JSON.parse(localStorage['rain.savedGames.' + name])
+
+    for levelName, level of savedGame
+      @levels[levelName] = {entities: {}}
+      @levels[levelName].entities.npcs = @deserializeEntities(level.entities.npcs)
+      @levels[levelName].entities.items = @deserializeEntities(level.entities.items)
+
+      # get the player data for level and copy it out
+      @levels[levelName].player = level.player
 
     # load level invariant data into @player
-    serializedPlayer = {}  # TODO copy from save
-    @player = playerbuilder.vivifyPlayer(serializedPlayer)
+    serializedPlayer = JSON.parse(localStorage['rain.savedGames.' + name + '.player'])
+    @player = entitybuilder.vivifyPlayer(serializedPlayer)
+    @name

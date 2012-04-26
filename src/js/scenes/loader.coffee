@@ -22,8 +22,8 @@
 
 
 gamejs = require 'gamejs'
-scene = require 'scene'
 
+GameScene = require('scenes/game').GameScene
 World = require('world').World
 
 
@@ -88,7 +88,7 @@ exports.Loader = class Loader
     if @loaded
       @world.selectLevel(@levelFilename)
       @world.setLevelSize(@level.size)
-      newScene = new scene.Scene(@director, @world, @spritesheets)
+      newScene = new GameScene(@director, @world, @spritesheets)
       for entityType in ['npcs', 'solids', 'backgrounds', 'portals', 'items']
         if @level[entityType]?
           entityBuilder = newScene.getEntityBuilder(entityType)

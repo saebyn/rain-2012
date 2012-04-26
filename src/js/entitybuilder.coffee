@@ -28,6 +28,20 @@ character = require 'character'
 sprite = require 'sprite'
 
 
+exports.vivifyEntity = (serialization) ->
+  {
+    copyData: (entity) ->
+      for key, value of serialization
+        entity[key] = value
+  }
+
+exports.vivifyPlayer = (serialization) ->
+  {
+    copyLevelInvariantData: (player) ->
+      for key, value of serialization
+        player[key] = value
+  }
+
 exports.EntityBuilder = class EntityBuilder
   constructor: (@world, @scene, @group, @type, @spritesheets) ->
 
@@ -38,20 +52,6 @@ exports.EntityBuilder = class EntityBuilder
     @group.add(player)
     @scene.player = player
     player
-
-  vivifyEntity: (serialization) ->
-    {
-      copyData: (entity) ->
-        for key, value of serialization
-          entity[key] = value
-    }
-
-  vivifyPlayer: (serialization) ->
-    {
-      copyLevelInvariantData: (player) ->
-        for key, value of serialization
-          player[key] = value
-    }
 
   newEntity: (id, parameters) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))

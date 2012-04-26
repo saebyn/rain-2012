@@ -22,7 +22,7 @@
 
 gamejs = require 'gamejs'
 director = require 'director'
-loader = require 'loader'
+loader = require 'scenes/loader'
 
 SCREEN_WIDTH = $(document).width() - 200
 SCREEN_HEIGHT = $(document).height() - 200

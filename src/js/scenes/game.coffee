@@ -23,7 +23,7 @@
 
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
-loader = require 'loader'
+loader = require 'scenese/loader'
 menu = require 'menu'
 mobile = require 'mobile'
 inventory = require 'inventory'
@@ -31,7 +31,7 @@ inventory = require 'inventory'
 EntityBuilder = require('entitybuilder').EntityBuilder
 
 
-exports.Scene = class Scene
+exports.GameScene = class GameScene
   constructor: (@director, @world, @spritesheets) ->
     @viewportRect = @director.getViewport()
     @paused = false
