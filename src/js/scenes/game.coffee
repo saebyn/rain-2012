@@ -24,6 +24,7 @@
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
 loader = require 'scenes/loader'
+start = require 'scenes/start'
 menu = require 'menu'
 mobile = require 'mobile'
 inventory = require 'inventory'
@@ -155,8 +156,8 @@ exports.GameScene = class GameScene
   # Handle quit event from director
   quitGame: =>
     if confirm('Are you sure you want to quit without saving your progress?')
-      # TODO switch the scene to the intro scene
-      console.log 'quit game'
+      # switch the scene to the intro scene
+      @director.replaceScene(new start.StartScene(@director))
   
   # Handle game save event from director
   saveGame: =>

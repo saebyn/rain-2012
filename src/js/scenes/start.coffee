@@ -20,13 +20,51 @@
 # IN THE SOFTWARE.
 #
 
-exports.Start = class Start
-  constructor: (@director) ->
+loader = require 'scenes/loader'
+
+
+exports.StartScene = Backbone.View.extend(
+  template: _.template('<button class="start">Start New Game</button>
+                        <ul class="saved-games">
+                         <% _.each(saves, function (s) { %>
+                         <li>
+                          <span class="name"><%= s.name %></span>
+                          <span class="date"><%= s.date %></span>
+                          <button class="load" id="game-<%= s.id %>">Load Save</button>
+                         </li>
+                         <% }); %>
+                        </ul>')
+
+  events:
+    'click .start': 'startNewGame'
+    'click .load': 'loadSavedGame'
+
+  initialize: (@director) ->
+    @rect = @director.getViewport()
+    @rect.topleft = [0, 0]
+    _.bindAll(this)
   
   start: ->
+    @setElement(@director.createHTMLElement(@rect)[0])
+    @render()
+
+  render: ->
     # make a start screen,
     # allow user to choose an available save
     # or start a new game
     # do the right thing
+    @$el.html(@template({saves: @getSavedGames()}))
 
   stop: ->
+    @remove()
+
+  getSavedGames: ->
+    [{name: 'Game1', date: Date.now(), id: '123'}]
+
+  loadSavedGame: (event) ->
+    id = $(event.currentTarget).attr('id').slice(5);
+    console.log 'load', id
+
+  startNewGame: ->
+    @director.replaceScene(new loader.Loader(@director, 'level1.json'))
+)
