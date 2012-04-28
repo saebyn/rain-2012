@@ -23,7 +23,7 @@
 
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
-loader = require 'scenese/loader'
+loader = require 'scenes/loader'
 menu = require 'menu'
 mobile = require 'mobile'
 inventory = require 'inventory'

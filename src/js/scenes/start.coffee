@@ -20,16 +20,13 @@
 # IN THE SOFTWARE.
 #
 
-gamejs = require 'gamejs'
-director = require 'director'
-loader = require 'scenes/loader'
+exports.Start = class Start
+  constructor: (@director) ->
+  
+  start: ->
+    # make a start screen,
+    # allow user to choose an available save
+    # or start a new game
+    # do the right thing
 
-SCREEN_WIDTH = $(document).width() - 200
-SCREEN_HEIGHT = $(document).height() - 200
-
-
-gamejs.ready ->
-  # make a global for ease of debugging
-  window.gameDirector = gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
-  # TODO switch to using the start scene
-  gameDirector.start(new loader.Loader(gameDirector, 'level1.json'))
+  stop: ->
