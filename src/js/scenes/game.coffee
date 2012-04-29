@@ -23,7 +23,8 @@
 
 gamejs = require 'gamejs'
 pathfinding = require 'pathfinding'
-loader = require 'loader'
+loader = require 'scenes/loader'
+start = require 'scenes/start'
 menu = require 'menu'
 mobile = require 'mobile'
 inventory = require 'inventory'
@@ -31,8 +32,8 @@ inventory = require 'inventory'
 EntityBuilder = require('entitybuilder').EntityBuilder
 
 
-exports.Scene = class Scene
-  constructor: (@director, worldSize, @spritesheets, @gameTime=0) ->
+exports.GameScene = class GameScene
+  constructor: (@director, @world, @spritesheets) ->
     @viewportRect = @director.getViewport()
     @paused = false
 
@@ -59,8 +60,8 @@ exports.Scene = class Scene
     # attacks are things that move and hit things
     @attacks = new gamejs.sprite.Group()
 
-    @worldWidth = worldSize[0]
-    @worldHeight = worldSize[1]
+    @worldWidth = @world.size[0]
+    @worldHeight = @world.size[1]
 
     # Hold a function to be called every frame to continue a player action.
     @playerMove = ->
@@ -72,7 +73,7 @@ exports.Scene = class Scene
     @director
 
   getTime: ->
-    new Date(@gameTime*1000 + 0x9fff9fff*1000)
+    new Date(@world.gameTime*1000 + 0x9fff9fff*1000)
 
   getEntityBuilder: (entityType) ->
     group = switch entityType
@@ -83,25 +84,24 @@ exports.Scene = class Scene
       when 'player' then @characters
       when 'items' then @items
 
-    return new EntityBuilder(@, group, entityType, @spritesheets)
+    return new EntityBuilder(@world, this, group, entityType, @spritesheets)
 
   start: ->
     @director.addHover 'items', @items
     @director.bind 'hover:items', @highlight
 
-    @director.bind 'update', (msDuration) =>
-      @update(msDuration)
+    @director.bind 'resume', @resumeGame
+    @director.bind 'save', @saveGame
+    @director.bind 'savequit', @quitSavedGame
+    @director.bind 'savequit', @saveGame
+    @director.bind 'quit', @quitGame
 
-    @director.bind 'resume', =>
-      @paused = false
-      @pauseMenu.kill()
-
-    @director.bind 'draw', (display) =>
-      @draw(display)
+    @director.bind 'draw', @draw
+    @director.bind 'update', @update
 
     @director.bind 'time', =>
       if not @paused
-        @gameTime++
+        @world.gameTime++
         @mobileDisplay.setTime(@getTime())
 
     @director.bind 'mousedown', _.debounce((event) =>
@@ -134,9 +134,49 @@ exports.Scene = class Scene
 
   stop: ->
     # XXX its currently unsafe to rely on this scene unbinding its own events
+    # currently not cleaned up: key and mouse events, and time ticks
     @mobileDisplay.stop()
+    @director.unbind 'draw', @draw
+    @director.unbind 'update', @update
+
     @director.unbind 'hover:items', @highlight
     @director.removeHover 'items'
+    @director.unbind 'resume', @resumeGame
+    @director.unbind 'save', @saveGame
+    @director.unbind 'savequit', @quitSavedGame
+    @director.unbind 'savequit', @saveGame
+    @director.unbind 'quit', @quitGame
+    @saveToWorld()
+
+  # Handle event to exit from ESC/pause menu.
+  resumeGame: =>
+    @paused = false
+    @pauseMenu.kill()
+
+  quitSavedGame: (selection) =>
+    @quitGame(selection, true)
+
+  # Handle quit event from director
+  quitGame: (selection, saved=false) =>
+    if saved or confirm('Are you sure you want to quit without saving your progress?')
+      # switch the scene to the intro scene
+      @director.replaceScene(new start.StartScene(@director))
+  
+  # Handle game save event from director
+  saveGame: =>
+    @saveToWorld()
+    saveName = prompt('Savepoint name?')
+    if saveName
+      @world.save(saveName)
+    else
+      return false
+
+  # serialize all entities into world cache
+  saveToWorld: ->
+    @world.clearEntities()
+    @world.addEntity('npcs', npc) for npc in @characters.sprites() when not npc.player
+    @world.addEntity('items', item) for item in @items.sprites()
+    @world.updatePlayer(@player)
 
   attack: _.debounce(->
     @player.attack()
@@ -182,7 +222,10 @@ exports.Scene = class Scene
       @paused = false
     else
       @pauseMenu = new menu.Menu(@director, @director.getViewport())
-      @pauseMenu.build('Paused', [['Back to Game', 'resume'], ['Quit Game', 'quit']])
+      @pauseMenu.build('Paused', [['Back to Game', 'resume'],
+                                  ['Save Progress', 'save'],
+                                  ['Save and Quit', 'savequit'],
+                                  ['Quit Game', 'quit']])
       @modalDialogs.add(@pauseMenu)
       @paused = true
   , 200, true)
@@ -193,7 +236,7 @@ exports.Scene = class Scene
     ))
     @paused = true
 
-  update: (msDuration) ->
+  update: (msDuration) =>
     # just let it skip a bit if we got slowed down that much
     # TODO think about how this works a bit...
     # maybe pause the game if we detect that we're going to lose focus.. is that doable?
@@ -207,7 +250,7 @@ exports.Scene = class Scene
       @mobileDisplay.update(msDuration)
       @solids.update(msDuration)
 
-  draw: (display) ->
+  draw: (display) =>
     @backgrounds.draw(display)
     @portals.draw(display)
     @solids.draw(display)
@@ -246,5 +289,5 @@ exports.Scene = class Scene
 
   loadPortal: (portal) ->
     @paused = true
-    newScene = new loader.Loader(@director, portal.destination, @gameTime)
+    newScene = new loader.Loader(@director, portal.destination, @world)
     @director.replaceScene(newScene)

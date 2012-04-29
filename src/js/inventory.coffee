@@ -52,6 +52,8 @@ InventoryItemView = Backbone.View.extend(
     @model.collection.trigger('drop', @model)
     @model.collection.trigger('drop:' + @model.id, @model)
     @model.collection.remove(@model)
+    # stop further events
+    return false
 
   render: ->
     @$el.html(this.template(

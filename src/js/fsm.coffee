@@ -28,6 +28,17 @@ exports.FSM = class FSM
     @transitions = description[2]
     @tokens = []
 
+  copy: (callback) ->
+    fsmCopy = new FSM([@state, @table, @transitions], callback)
+    fsmCopy.tokens = @tokens
+    fsmCopy
+
+  load: (serialization) ->
+    @state = serialization.state
+    @table = serialization.table
+    @transitions = serialization.transitions
+    @tokens = serialization.tokens
+
   getTransitionIn: (state) ->
     if @transitions[state]?.inTransition?
       @transitions[state].inTransition

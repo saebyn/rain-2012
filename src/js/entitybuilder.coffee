@@ -28,28 +28,46 @@ character = require 'character'
 sprite = require 'sprite'
 
 
+exports.vivifyPlayer = (serialization) ->
+  {
+    copyLevelInvariantData: (player) ->
+      for key, value of serialization
+        player[key] = value
+  }
+
+
 exports.EntityBuilder = class EntityBuilder
-  constructor: (@scene, @group, @type, @spritesheets) ->
+  constructor: (@world, @scene, @group, @type, @spritesheets) ->
 
   newPlayer: (rect, spriteName) ->
     player = new character.Player(@scene, rect)
     sprite.setupSprite(player, spriteName, @spritesheets)
+    @world.loadPlayer(player)
     @group.add(player)
     @scene.player = player
     player
 
-  newEntity: (id, parameters={}) ->
+  newEntity: (id, parameters) ->
     rect = @scene.toScreenRect(new gamejs.Rect(parameters.x, parameters.y, parameters.width, parameters.height))
     behavior = parameters.behavior or []
     distance = parameters.distance or 0
     destination = parameters.destination or ''
 
     entity = switch @type
-      when 'solids' then new entities.Entity(@scene, rect)
-      when 'npcs' then new character.NPCharacter(@scene, rect, parameters.dialog, behavior)
-      when 'backgrounds' then new entities.BackgroundSprite(@scene, rect, distance)
-      when 'portals' then new entities.Portal(@scene, rect, destination)
+      when 'solids' then new entities.Entity(@scene, rect, id)
+      when 'npcs' then new character.NPCharacter(@scene, rect, id, parameters.dialog, behavior)
+      when 'backgrounds' then new entities.BackgroundSprite(@scene, rect, id, distance)
+      when 'portals' then new entities.Portal(@scene, rect, id, destination)
       when 'items' then new entities.Item(@scene, rect, id, parameters)
+
+    # if we have entities cached in the @world
+    if @world.hasEntities()
+      # discard entities that don't exist in world
+      if not @world.hasEntity(@type, id)
+        return
+
+      # load values for this entity from world
+      @world.loadEntity(@type, id, entity)
 
     if @type != 'portals'
       sprite.loadSpriteSpec(entity, parameters, @spritesheets)

@@ -22,7 +22,7 @@
 
 gamejs = require 'gamejs'
 director = require 'director'
-loader = require 'loader'
+StartScene = require('scenes/start').StartScene
 
 SCREEN_WIDTH = $(document).width() - 200
 SCREEN_HEIGHT = $(document).height() - 200
@@ -31,4 +31,5 @@ SCREEN_HEIGHT = $(document).height() - 200
 gamejs.ready ->
   # make a global for ease of debugging
   window.gameDirector = gameDirector = new director.Director(SCREEN_WIDTH, SCREEN_HEIGHT)
-  gameDirector.start(new loader.Loader(gameDirector, 'level1.json'))
+  # switch to using the start scene
+  gameDirector.start(new StartScene(gameDirector))
