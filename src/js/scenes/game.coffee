@@ -92,7 +92,7 @@ exports.GameScene = class GameScene
 
     @director.bind 'resume', @resumeGame
     @director.bind 'save', @saveGame
-    @director.bind 'savequit', @quitGame
+    @director.bind 'savequit', @quitSavedGame
     @director.bind 'savequit', @saveGame
     @director.bind 'quit', @quitGame
 
@@ -143,7 +143,7 @@ exports.GameScene = class GameScene
     @director.removeHover 'items'
     @director.unbind 'resume', @resumeGame
     @director.unbind 'save', @saveGame
-    @director.unbind 'savequit', @quitGame
+    @director.unbind 'savequit', @quitSavedGame
     @director.unbind 'savequit', @saveGame
     @director.unbind 'quit', @quitGame
     @saveToWorld()
@@ -153,9 +153,12 @@ exports.GameScene = class GameScene
     @paused = false
     @pauseMenu.kill()
 
+  quitSavedGame: (selection) =>
+    @quitGame(selection, true)
+
   # Handle quit event from director
-  quitGame: =>
-    if confirm('Are you sure you want to quit without saving your progress?')
+  quitGame: (selection, saved=false) =>
+    if saved or confirm('Are you sure you want to quit without saving your progress?')
       # switch the scene to the intro scene
       @director.replaceScene(new start.StartScene(@director))
   

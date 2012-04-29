@@ -28,19 +28,13 @@ character = require 'character'
 sprite = require 'sprite'
 
 
-exports.vivifyEntity = (serialization) ->
-  {
-    copyData: (entity) ->
-      for key, value of serialization
-        entity[key] = value
-  }
-
 exports.vivifyPlayer = (serialization) ->
   {
     copyLevelInvariantData: (player) ->
       for key, value of serialization
         player[key] = value
   }
+
 
 exports.EntityBuilder = class EntityBuilder
   constructor: (@world, @scene, @group, @type, @spritesheets) ->

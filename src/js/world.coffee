@@ -67,7 +67,8 @@ exports.World = class World
   # Update the entity with values from the cache
   # This should not be called if @hasEntities() returns false
   loadEntity: (type, id, entity) ->
-    @levels[@name].entities[type]?[id]?.copyData?(entity)
+    if @levels[@name].entities?[type]?[id]?
+      entity.loadData(@levels[@name].entities[type][id])
 
   getPlayerPosition: ->
     @levels[@name]?.player?.position
@@ -78,9 +79,10 @@ exports.World = class World
     position = @getPlayerPosition()
     if position?
       player.position = position
-    
+
     if @player?
       @player.copyLevelInvariantData(player)
+      return
 
     @player = player
 
@@ -102,11 +104,7 @@ exports.World = class World
     serializedEntities
 
   deserializeEntities: (serializedEntities) ->
-    entities = {}
-    for id, entity of serializedEntities
-      entities[id] = entitybuilder.vivifyEntity(entity)
-
-    entities
+    serializedEntities
 
   # Save the cache of all levels to storage, indicating which level
   # is the current.
@@ -119,7 +117,9 @@ exports.World = class World
     @player.copyLevelInvariantData(serializedPlayer)
 
     # write out player
-    localStorage['rain.savedGames.' + name + '.player'] = serializedPlayer
+    localStorage['rain.savedGames.' + name + '.player'] = JSON.stringify(serializedPlayer)
+    # save game time
+    localStorage['rain.savedGames.' + name + '.time'] = @gameTime
 
     save = {}
     for levelName, level of @levels
@@ -156,12 +156,18 @@ exports.World = class World
   # Load a saved cache and return the current level name.
   # Returns false if the save could not be found.
   load: (name) ->
+    # TODO wrap this in a try except and properly handle exceptions
     saves = @getSavedGames()
     if name not of saves
       return false
 
     [lastSaved, @name] = saves[name]
     @levels = {}
+
+    # load game time
+    @gameTime = parseInt(localStorage['rain.savedGames.' + name + '.time'])
+    if _.isNaN(@gameTime)
+      @gameTime = 0
 
     savedGame = JSON.parse(localStorage['rain.savedGames.' + name])
 

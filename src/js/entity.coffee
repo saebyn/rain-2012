@@ -34,8 +34,11 @@ exports.Entity = class Entity extends Sprite
   copyData: (newEntityObject) ->
     newEntityObject.position = @position
 
+  # Copy the data of the serialized object into this entity
+  loadData: (serializedObject) ->
+    @position = serializedObject.position
+
   trigger: (event, args...) ->
-    console.log 'Entity got event', event, 'with args', args
 
 
 exports.Item = class Item extends Entity

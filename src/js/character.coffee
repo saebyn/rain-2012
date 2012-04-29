@@ -63,6 +63,15 @@ class Character extends Entity
     newObject.lastFacing = @lastFacing
     newObject.life = @life
 
+  copyData: (serializedObject) ->
+    super(serializedObject)
+    @landed = serializedObject.landed
+    @direction = serializedObject.direction
+    @collided = serializedObject.collided
+    @looking = serializedObject.looking
+    @lastFacing = serializedObject.lastFacing
+    @life = serializedObject.life
+
   # attack the direction we're facing
   attack: ->
     if @looking == ''
@@ -197,6 +206,11 @@ exports.NPCharacter = class NPCharacter extends Character
     super(newObject)
     newObject.behavior = @behavior.copy(newObject.behaviorDispatch)
 
+  # Copy the data of the serialized object into this entity
+  loadData: (serializedObject) ->
+    super(serializedObject)
+    @behavior.load(serializedObject.behavior)
+
   updateDialog: ->
     # extract dialog options
     options = ([option] for option in @dialogResponse.getOptions())
@@ -310,6 +324,9 @@ exports.Player = class Player extends Character
     newPlayerObject.inventory = @inventory
 
   getInventory: ->
+    if not @inventory.models?
+      @inventory = new inventory.Inventory(@inventory)
+
     return @inventory
 
   addItemToInventory: (id, parameters) ->

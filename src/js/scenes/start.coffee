@@ -21,6 +21,7 @@
 #
 
 loader = require 'scenes/loader'
+world = require 'world'
 
 
 exports.StartScene = Backbone.View.extend(
@@ -29,7 +30,7 @@ exports.StartScene = Backbone.View.extend(
                          <% _.each(saves, function (s) { %>
                          <li>
                           <span class="name"><%= s.name %></span>
-                          <span class="date"><%= s.date %></span>
+                          <span class="date"><%= s.date.toLocaleString() %></span>
                           <button class="load" id="game-<%= s.id %>">Load Save</button>
                          </li>
                          <% }); %>
@@ -59,11 +60,21 @@ exports.StartScene = Backbone.View.extend(
     @remove()
 
   getSavedGames: ->
-    [{name: 'Game1', date: Date.now(), id: '123'}]
+    saves = []
+
+    if localStorage['rain.savedGames']?
+      for name, details of JSON.parse(localStorage['rain.savedGames'])
+        date = details[0]
+        saves.push {name: name, date: new Date(date), id: name}
+
+    # TODO sort saved games by date
+    saves
 
   loadSavedGame: (event) ->
     id = $(event.currentTarget).attr('id').slice(5);
-    console.log 'load', id
+    savedWorld = new world.World()
+    levelName = savedWorld.load(id)
+    @director.replaceScene(new loader.Loader(@director, levelName, savedWorld))
 
   startNewGame: ->
     @director.replaceScene(new loader.Loader(@director, 'level1.json'))
