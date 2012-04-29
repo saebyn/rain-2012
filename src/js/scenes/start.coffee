@@ -25,16 +25,18 @@ world = require 'world'
 
 
 exports.StartScene = Backbone.View.extend(
-  template: _.template('<button class="start">Start New Game</button>
-                        <ul class="saved-games">
-                         <% _.each(saves, function (s) { %>
-                         <li>
-                          <span class="name"><%= s.name %></span>
-                          <span class="date"><%= s.date.toLocaleString() %></span>
-                          <button class="load" id="game-<%= s.id %>">Load Save</button>
-                         </li>
-                         <% }); %>
-                        </ul>')
+  template: _.template('<div class="wrapper">
+                         <button class="start">Start New Game</button>
+                         <ul class="saved-games">
+                          <% _.each(saves, function (s) { %>
+                          <li>
+                           <span class="name"><%= s.name %></span>
+                           <span class="date"><%= s.date.toLocaleString() %></span>
+                           <button class="load" id="game-<%= s.id %>">Load Save</button>
+                          </li>
+                          <% }); %>
+                         </ul>
+                        </div>')
 
   events:
     'click .start': 'startNewGame'
@@ -47,6 +49,7 @@ exports.StartScene = Backbone.View.extend(
   
   start: ->
     @setElement(@director.createHTMLElement(@rect)[0])
+    @$el.attr({id: 'start-screen'})
     @render()
 
   render: ->

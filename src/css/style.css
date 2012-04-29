@@ -213,7 +213,7 @@ td { vertical-align: top; }
 
 #key-defs { float: right; width: 150px; }
 
-#gjs-canvas { border: 2px solid black; margin: 10px 20px; }
+#gjs-canvas { margin: 0px; }
 
 .rounded-bottom {
   -webkit-border-bottom-right-radius: 8px;
@@ -270,6 +270,62 @@ td { vertical-align: top; }
   background-color: gray;
 }
 
+
+/* styles for start scene */
+#start-screen .wrapper {
+  background-color: black;
+  max-width: 1200px;
+  margin: 0px auto;
+}
+
+#start-screen button {
+  padding: 15px;
+  border: 1px solid black;
+  background-color: gray;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  color: white;
+}
+
+#start-screen button.start {
+  float: left;
+  margin: 40px 0 0 40px;
+}
+
+#start-screen ul.saved-games {
+  margin-left: 40%;
+  border-left: 2px solid black;
+}
+
+#start-screen ul.saved-games li {
+  list-style: none;
+  background-color: #eee;
+  width: 80%;
+  height: 100px;
+  padding: 15px;
+  border-bottom: 1px dashed white;
+}
+
+#start-screen ul.saved-games li .name:before {
+  content: "Save: ";
+}
+
+#start-screen ul.saved-games li .name {
+  font-weight: bold;
+  display: block;
+  clear: right;
+}
+
+#start-screen ul.saved-games li .date {
+  font-style: italic;
+  font-size: 80%;
+}
+
+#start-screen ul.saved-games li button {
+  float: right;
+  color: black;
+}
 
 /* styles for inventory system */
 #inventory {
