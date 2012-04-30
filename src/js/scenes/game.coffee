@@ -73,7 +73,7 @@ exports.GameScene = class GameScene
     @director
 
   getTime: ->
-    new Date(@world.gameTime*1000 + 0x9fff9fff*1000)
+    new Date(@world.gameTime*1000 + 2684337900*1000)
 
   getEntityBuilder: (entityType) ->
     group = switch entityType

@@ -71,7 +71,7 @@ exports.StartScene = Backbone.View.extend(
         date = details[0]
         saves.push {name: name, date: new Date(date), id: name}
 
-    # TODO sort saved games by date
+    saves.reverse()
     saves
 
   loadSavedGame: (event) ->

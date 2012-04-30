@@ -210,6 +210,13 @@ td { vertical-align: top; }
 /* ==|== primary styles =====================================================
    Author: John Weaver
    ========================================================================== */
+p {
+  width: 40%;
+  margin: 1em 1em;
+  text-indent: 1.5em;
+  text-align: justify;
+  font-size: 120%;
+}
 
 #key-defs { float: right; width: 150px; }
 
