@@ -1,0 +1,26 @@
+#container
+  %header
+  #main{:role => "main"}
+  %footer
+
+-# Include JS templates
+%script{:type => "text/template", :id => "mobile-device-tmpl"}
+  = partial "mobile"
+
+-# JavaScript at the bottom for fast page loading
+
+-# scripts concatenated and minified via build script
+= javascripts "lib/jquery"
+= javascripts "lib/underscore"
+= javascripts "lib/backbone"
+= javascripts "lib/yabble"
+= javascripts "lib/gamejs"
+:javascript
+  var $g = {
+    ajaxBaseHref: "/assets/",
+    resourceBaseHref: "/assets"
+  };
+  require.setModuleRoot('js');
+  require.run('app');
+
+-# end scripts

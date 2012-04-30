@@ -24,8 +24,8 @@ gamejs = require 'gamejs'
 director = require 'director'
 StartScene = require('scenes/start').StartScene
 
-SCREEN_WIDTH = $(document).width() - 200
-SCREEN_HEIGHT = $(document).height() - 200
+SCREEN_WIDTH = $(document).width() - 25
+SCREEN_HEIGHT = $(document).height() - 25
 
 
 gamejs.ready ->

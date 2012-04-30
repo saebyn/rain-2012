@@ -36,6 +36,7 @@ exports.StartScene = Backbone.View.extend(
                           </li>
                           <% }); %>
                          </ul>
+                         <div class="clearfix"></div>
                         </div>')
 
   events:
